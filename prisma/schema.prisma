@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String    @id @default(uuid())
+  email                String    @unique
+  password             String
+  role                 Role      @default(EMPLOYE)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  lastLoginAt          DateTime?
+  mustChangePassword   Boolean   @default(false)
+  passwordResetExpires DateTime?
+  passwordResetToken   String?
+  twoFactorEnabled     Boolean   @default(false)
+  twoFactorSecret      String?
+  employe              Employe?
+}
+
+model Employe {
+  id           String        @id @default(uuid())
+  userId       String?       @unique
+  nom          String
+  prenom       String
+  photo        String?
+  poste        String
+  dateEmbauche DateTime
+  salaireBase  Float
+  statut       StatutEmploye @default(ACTIF)
+  soldeConges  Float         @default(18)
+  soldeMaladie Float         @default(10)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  departement  String?
+  employeeId   String?       @unique
+  telephone    String?
+  avances      Avance[]
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pointages    Pointage[]
+
+  @@index([statut])
+  @@index([nom, prenom])
+  @@index([employeeId])
+}
+
+model Pointage {
+  id              String         @id @default(uuid())
+  employeId       String
+  date            DateTime
+  statut          StatutPointage
+  heuresSupp      Float          @default(0)
+  joursTravailles Float          @default(1)
+  notes           String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  clockInTime     DateTime?
+  clockOutTime    DateTime?
+  isAutoClockIn   Boolean        @default(false)
+  isAutoClockOut  Boolean        @default(false)
+  totalHours      Float?
+  employe         Employe        @relation(fields: [employeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeId, date])
+  @@index([employeId])
+  @@index([date])
+  @@index([statut])
+}
+
+model Avance {
+  id        String       @id @default(uuid())
+  employeId String
+  montant   Float
+  date      DateTime     @default(now())
+  note      String?
+  statut    AvanceStatut @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  employe   Employe      @relation(fields: [employeId], references: [id], onDelete: Cascade)
+
+  @@index([employeId])
+  @@index([date])
+}
+
+enum Role {
+  ADMIN
+  CHEF
+  EMPLOYE
+}
+
+enum StatutEmploye {
+  ACTIF
+  INACTIF
+}
+
+enum StatutPointage {
+  PRESENT
+  ABSENT
+  CONGE
+  MALADIE
+  FERIE
+}
+
+enum AvanceStatut {
+  PENDING
+  APPROVED
+  REJECTED
+}

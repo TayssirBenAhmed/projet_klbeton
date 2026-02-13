@@ -1,0 +1,11 @@
+﻿--- Testing Prisma Update for ID: 7bea4bbd-7e9c-4ee6-95e2-a578786d3752 ---
+Update success! {
+  id: '7bea4bbd-7e9c-4ee6-95e2-a578786d3752',
+  employeId: '97c9b978-fc54-4074-9b43-ca95eb39d789',
+  montant: 200,
+  date: 2026-02-13T00:00:00.000Z,
+  note: 'Avance sur salaire',
+  statut: 'APPROVED',
+  createdAt: 2026-02-13T10:10:50.260Z,
+  updatedAt: 2026-02-13T11:29:35.897Z
+}

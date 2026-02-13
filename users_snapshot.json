@@ -1,0 +1,22 @@
+[
+  {
+    "email": "tayssir@klbeton.tn",
+    "role": "EMPLOYE"
+  },
+  {
+    "email": "mahdi@klbeton.tn",
+    "role": "EMPLOYE"
+  },
+  {
+    "email": "admin@klbeton.tn",
+    "role": "ADMIN"
+  },
+  {
+    "email": "mahdoun@klbeton.tn",
+    "role": "EMPLOYE"
+  },
+  {
+    "email": "chef@klbeton.tn",
+    "role": "CHEF"
+  }
+]

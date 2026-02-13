@@ -1,0 +1,38 @@
+﻿--- ENUM CHECK ---
+Enum values in DB: [
+  { schema: 'public', type: 'AvanceStatut', value: 'PENDING' },
+  { schema: 'public', type: 'AvanceStatut', value: 'APPROVED' },
+  { schema: 'public', type: 'AvanceStatut', value: 'REJECTED' }
+]
+
+--- COLUMN METADATA ---
+Columns: [
+  {
+    column_name: 'createdAt',
+    data_type: 'timestamp without time zone',
+    is_nullable: 'NO'
+  },
+  {
+    column_name: 'updatedAt',
+    data_type: 'timestamp without time zone',
+    is_nullable: 'NO'
+  },
+  {
+    column_name: 'statut',
+    data_type: 'USER-DEFINED',
+    is_nullable: 'NO'
+  },
+  {
+    column_name: 'date',
+    data_type: 'timestamp without time zone',
+    is_nullable: 'NO'
+  },
+  {
+    column_name: 'montant',
+    data_type: 'double precision',
+    is_nullable: 'NO'
+  },
+  { column_name: 'note', data_type: 'text', is_nullable: 'YES' },
+  { column_name: 'employeId', data_type: 'text', is_nullable: 'NO' },
+  { column_name: 'id', data_type: 'text', is_nullable: 'NO' }
+]

@@ -1,0 +1,13 @@
+--- APPLICATION DATABASE INFO ---
+DATABASE_URL from env: postgresql://postgres:postgres@localhost:5432/kl_beton?schema=public
+Database: kl_beton
+Port: 5432
+Address: ::1
+Version: PostgreSQL 18.0 on x86_64-windows
+
+--- VERIFICATION ACTION ---
+✅ Created unique employee with prenom: VERIF-1770733722036
+Please run this query in pgAdmin:
+SELECT * FROM public."Employe" WHERE prenom = 'VERIF-1770733722036';
+
+Total employees in this DB: 18
