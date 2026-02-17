@@ -1,0 +1,1972 @@
+[
+  {
+    "id": "TC001",
+    "title": "Admin views the employee list",
+    "description": "Verifies an authenticated admin can open the Employees page and see a list of employees.",
+    "category": "Employee Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/admin\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Employés\" menu item"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page title contains \"Employés\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Employee list\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Admin opens an employee details page from the list",
+    "description": "Verifies an authenticated admin can navigate from the employees list to a specific employee details page.",
+    "category": "Employee Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/admin\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Employés\" menu item"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first employee row in the list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/admin/dashboard/employes/"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Admin creates a new employee with valid required fields",
+    "description": "Verifies an authenticated admin can create a new employee and see it appear in the employee list.",
+    "category": "Employee Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/admin\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Employés\" menu item"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Add employee\" button"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Test\" into the \"Nom\" field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Employee\" into the \"Prénom\" field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"3000\" into the \"Salaire\" field"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Employee\" from the \"Rôle\" dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Save\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Employee created\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Admin attempts to create an employee with missing required fields",
+    "description": "Verifies the create employee form shows visible validation errors when required fields are missing.",
+    "category": "Employee Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/admin\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Employés\" menu item"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Add employee\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Save\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"required\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Nom\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Prénom\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Admin edits an employee salary and saves",
+    "description": "Verifies an authenticated admin can update an employee salary and see a visible confirmation.",
+    "category": "Employee Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/admin\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Employés\" menu item"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first employee row in the list"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Edit\" button"
+      },
+      {
+        "type": "action",
+        "description": "Fill \"3500\" into the \"Salaire\" field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Save\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Updated\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Admin deletes an employee from the details page",
+    "description": "Verifies an authenticated admin can delete an employee and see a visible success message or return to list without the record.",
+    "category": "Employee Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/admin\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Employés\" menu item"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first employee row in the list"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Delete\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Confirm\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Deleted\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Employee cannot access another employee’s profile (data isolation)",
+    "description": "Verifies a non-admin user is blocked from viewing another employee’s details page.",
+    "category": "Employee Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin/dashboard/employes/1"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Forbidden\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"403\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Employee cannot edit another employee’s salary",
+    "description": "Verifies a non-admin user cannot reach an edit experience for another employee and sees an access denied message.",
+    "category": "Employee Management",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin/dashboard/employes/1"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Forbidden\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Edit\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "CHEF records bulk attendance for a specific date with overtime hours",
+    "description": "Verifies a CHEF can open the Pointage page, enter a date, bulk mark employees as PRESENT with overtime, and see the saved records displayed.",
+    "category": "Attendance (Pointage)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" or \"Login\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/chef\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Pointage\" in the navigation menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page title contains \"Pointage\""
+      },
+      {
+        "type": "action",
+        "description": "Select the date \"2026-02-10\" in the attendance date picker"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "CHEF saves attendance and sees a success confirmation and rows for the chosen date",
+    "description": "Verifies saving attendance shows a visible success state and the attendance list updates for the selected date.",
+    "category": "Attendance (Pointage)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" or \"Login\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/chef\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Pointage\" in the navigation menu"
+      },
+      {
+        "type": "action",
+        "description": "Select the date \"2026-02-10\" in the attendance date picker"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Attendance records list/table\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "CHEF fetches attendance for a date by changing the date filter",
+    "description": "Verifies the CHEF can switch the date filter and the UI refreshes to show records for the newly selected date.",
+    "category": "Attendance (Pointage)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" or \"Login\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/chef\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Pointage\" in the navigation menu"
+      },
+      {
+        "type": "action",
+        "description": "Select the date \"2026-02-09\" in the attendance date picker"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"2026-02-09\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "CHEF corrects an existing attendance record by changing status to CONGE",
+    "description": "Verifies the CHEF can edit an existing record to CONGE and the updated status is visible in the list.",
+    "category": "Attendance (Pointage)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" or \"Login\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/chef\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Pointage\" in the navigation menu"
+      },
+      {
+        "type": "action",
+        "description": "Select the date \"2026-02-10\" in the attendance date picker"
+      },
+      {
+        "type": "action",
+        "description": "Click on an existing employee attendance row to open editing controls"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "CHEF correction is persisted and visible after saving",
+    "description": "Verifies that after editing an attendance record and saving, the new status remains visible in the list for that date.",
+    "category": "Attendance (Pointage)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" or \"Login\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/chef\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Pointage\" in the navigation menu"
+      },
+      {
+        "type": "action",
+        "description": "Select the date \"2026-02-10\" in the attendance date picker"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"CONGE\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "CHEF marks an old record as MALADIE (historical patch)",
+    "description": "Verifies the CHEF can change a past date’s attendance record to MALADIE and see the updated status in the UI.",
+    "category": "Attendance (Pointage)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" or \"Login\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/chef\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Pointage\" in the navigation menu"
+      },
+      {
+        "type": "action",
+        "description": "Select the date \"2026-01-15\" in the attendance date picker"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Attendance records list/table\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Duplicate bulk attendance for the same date shows a visible conflict/error message",
+    "description": "Verifies that attempting to save attendance for a date where records already exist shows a visible error and does not create duplicates in the UI.",
+    "category": "Attendance (Pointage)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" or \"Login\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/chef\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Pointage\" in the navigation menu"
+      },
+      {
+        "type": "action",
+        "description": "Select the date \"2026-02-10\" in the attendance date picker"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"already exists\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Non-CHEF user cannot access CHEF Pointage workflow (authorization blocked in UI)",
+    "description": "Verifies that a user without CHEF privileges cannot use the bulk pointage interface and sees an access denied or lack of bulk controls.",
+    "category": "Attendance (Pointage)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"employee_not_chef@example.com\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"WrongPassword123!\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" or \"Login\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Access denied\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Login form\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Admin views the Salary Advances (Avances) finance page and sees the pending list section",
+    "description": "Verifies the admin can open the finances advances screen and the pending advances area is visible.",
+    "category": "Salary Advances (Finance)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Admin\" in the main navigation (or user role menu) if visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Finances\" in the dashboard navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Avances\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Admin filters advances by PENDING status",
+    "description": "Verifies filtering the advances list to show pending requests only.",
+    "category": "Salary Advances (Finance)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Finances\" in the dashboard navigation"
+      },
+      {
+        "type": "action",
+        "description": "Select \"PENDING\" from the status filter dropdown"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"PENDING\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Admin approves a pending salary advance request",
+    "description": "Verifies an admin can change an advance status from PENDING to APPROVED from the UI.",
+    "category": "Salary Advances (Finance)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Finances\" in the dashboard navigation"
+      },
+      {
+        "type": "action",
+        "description": "Select \"PENDING\" from the status filter dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first \"Approve\" button in the pending advances list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"APPROVED\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Admin rejects a pending salary advance request",
+    "description": "Verifies an admin can reject a pending advance request and the UI reflects the new status.",
+    "category": "Salary Advances (Finance)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Finances\" in the dashboard navigation"
+      },
+      {
+        "type": "action",
+        "description": "Select \"PENDING\" from the status filter dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first \"Reject\" button in the pending advances list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"REJECTED\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "Non-admin user cannot approve an advance (permission denied)",
+    "description": "Verifies a non-admin role (e.g., chef) is blocked from changing advance status and sees an access/forbidden message.",
+    "category": "Salary Advances (Finance)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Finances\" in the dashboard navigation"
+      },
+      {
+        "type": "action",
+        "description": "Select \"PENDING\" from the status filter dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first \"Approve\" button if it is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Forbidden\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC022",
+    "title": "Admin views APPROVED advances and sees them listed",
+    "description": "Verifies the approved advances list is accessible and shows approved items.",
+    "category": "Salary Advances (Finance)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Finances\" in the dashboard navigation"
+      },
+      {
+        "type": "action",
+        "description": "Select \"APPROVED\" from the status filter dropdown"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"APPROVED\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC023",
+    "title": "Admin verifies approved advance appears as a payroll deduction indicator",
+    "description": "Verifies the UI indicates that approved advances are included in payroll deductions (high-level check).",
+    "category": "Salary Advances (Finance)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Finances\" in the dashboard navigation"
+      },
+      {
+        "type": "action",
+        "description": "Select \"APPROVED\" from the status filter dropdown"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Déduction\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC024",
+    "title": "Employee submits a salary advance request with an invalid negative amount and sees validation error",
+    "description": "Verifies the UI prevents submitting a negative advance amount and shows an error message.",
+    "category": "Salary Advances (Finance)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Finances\" in the dashboard navigation"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"New advance\" or \"Request advance\" button"
+      },
+      {
+        "type": "action",
+        "description": "Type \"-100\" into the amount field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Invalid amount\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC025",
+    "title": "Admin can view dashboard statistics summary cards",
+    "description": "Verifies an admin can open the Admin Dashboard and see aggregated statistics values displayed.",
+    "category": "Dashboard Statistics",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Admin\" in the main navigation/menu"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Dashboard\" in the admin navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Total Employees\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Present Today\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC026",
+    "title": "Admin dashboard shows overtime and approved advances metrics",
+    "description": "Verifies the Admin Dashboard includes overtime hours and approved advances metrics in the visible summary area.",
+    "category": "Dashboard Statistics",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Admin\" in the main navigation/menu"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Dashboard\" in the admin navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Total Overtime\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Approved Advances\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC027",
+    "title": "Admin can see chart-ready overtime-by-employee section",
+    "description": "Verifies the Admin Dashboard shows a visible section for overtime grouped by employee (chart/table) with employee names and hours.",
+    "category": "Dashboard Statistics",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Admin\" in the main navigation/menu"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Dashboard\" in the admin navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Overtime by Employee\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"overtime by employee chart\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC028",
+    "title": "Admin can apply a valid date range filter and see updated stats",
+    "description": "Verifies the admin can set a start and end date on the dashboard and the statistics area updates to reflect the selected range.",
+    "category": "Dashboard Statistics",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Admin\" in the main navigation/menu"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Dashboard\" in the admin navigation"
+      },
+      {
+        "type": "action",
+        "description": "Type \"2026-02-01\" into the \"Start Date\" field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"2026-02-28\" into the \"End Date\" field"
+      }
+    ]
+  },
+  {
+    "id": "TC029",
+    "title": "Admin sees a validation message when date range is missing",
+    "description": "Verifies the dashboard prevents loading stats (or shows an error) when start and end date are required but not provided.",
+    "category": "Dashboard Statistics",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Admin\" in the main navigation/menu"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Dashboard\" in the admin navigation"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Apply\" or \"Refresh\" button for dashboard statistics"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"date range\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC030",
+    "title": "Admin sees an error when end date is before start date",
+    "description": "Verifies the dashboard handles an invalid date range by showing a visible validation/error message instead of displaying misleading stats.",
+    "category": "Dashboard Statistics",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Admin\" in the main navigation/menu"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Dashboard\" in the admin navigation"
+      },
+      {
+        "type": "action",
+        "description": "Type \"2026-02-28\" into the \"Start Date\" field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"2026-02-01\" into the \"End Date\" field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Invalid date range\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC031",
+    "title": "Chef role can access permitted dashboard statistics view",
+    "description": "Verifies a Chef user can open the dashboard statistics view when permitted by RBAC and sees the statistics section.",
+    "category": "Dashboard Statistics",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"chef.user@example.com\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"WrongPassword123!\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Invalid\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      }
+    ]
+  },
+  {
+    "id": "TC032",
+    "title": "Non-admin user is blocked from admin dashboard statistics",
+    "description": "Verifies a non-admin user cannot access the admin dashboard statistics page/section and sees a visible access-denied message or lacks the admin dashboard entry.",
+    "category": "Dashboard Statistics",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"employee.user@example.com\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"EmployeePassword123!\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the main navigation/menu button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Admin\" is not visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Access denied\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC033",
+    "title": "View chat contacts list with last message previews",
+    "description": "Verifies the user can open the Messaging page and see a list of chat contacts with preview information.",
+    "category": "Messaging",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Messages\" in the main navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Chat contacts list\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Last message\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC034",
+    "title": "Open a conversation from contacts and view message thread",
+    "description": "Verifies selecting a contact opens the conversation thread and displays messages.",
+    "category": "Messaging",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Messages\" in the main navigation"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first contact in the chat contacts list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Message thread\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC035",
+    "title": "Send a message to an existing contact",
+    "description": "Verifies the user can type and send a message and see it appear in the conversation.",
+    "category": "Messaging",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Messages\" in the main navigation"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first contact in the chat contacts list"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Hello, this is a test message\" into the message input field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Send\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Hello, this is a test message\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC036",
+    "title": "Unread messages indicator is visible and decreases after reading a chat",
+    "description": "Verifies unread count/badge is shown and is cleared or reduced after opening a chat with unread messages.",
+    "category": "Messaging",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Messages\" in the main navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Unread badge\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on a contact that shows an unread badge"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Unread badge\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC037",
+    "title": "Search or filter chat contacts (if available)",
+    "description": "Verifies the user can narrow the chat contacts list using the contacts search field.",
+    "category": "Messaging",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Messages\" in the main navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Contacts search field\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"a\" into the contacts search field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Chat contacts list\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC038",
+    "title": "Prevent sending an empty message",
+    "description": "Verifies the UI blocks sending when the message input is empty and shows a visible validation state.",
+    "category": "Messaging",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Messages\" in the main navigation"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first contact in the chat contacts list"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Send\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Message cannot be empty\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC039",
+    "title": "Gracefully handle sending to an invalid/non-existent recipient (UI error)",
+    "description": "Verifies the UI displays a visible error when a message cannot be delivered to the selected recipient.",
+    "category": "Messaging",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Messages\" in the main navigation"
+      },
+      {
+        "type": "action",
+        "description": "Click on a contact labeled \"Unknown\" (if present) in the chat contacts list"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Test delivery\" into the message input field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Send\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"User not found\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC040",
+    "title": "Admin can access the Reports page from the Admin Dashboard",
+    "description": "Verifies an authenticated admin can open the Reports (Rapports) page in the admin dashboard UI.",
+    "category": "Reports & Exports",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" or \"Login\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/admin\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Rapports\" in the admin sidebar or admin navigation menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page title contains \"Rapports\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Rapports\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC041",
+    "title": "Admin generates a monthly Payroll report successfully",
+    "description": "Verifies an admin can generate a monthly payroll report from the Reports UI and sees a success state indicating the report is ready.",
+    "category": "Reports & Exports",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" or \"Login\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Rapports\" in the admin sidebar or admin navigation menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Rapports\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Payroll\" from the report type dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Select \"2026-02\" from the month picker or month dropdown"
+      }
+    ]
+  },
+  {
+    "id": "TC042",
+    "title": "Admin sees a generated report listed with an accessible download control",
+    "description": "Verifies that after generating a report, the report appears in the reports list with a visible Download option.",
+    "category": "Reports & Exports",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" or \"Login\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Rapports\" in the admin sidebar or admin navigation menu"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Payroll\" from the report type dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Select \"2026-02\" from the month picker or month dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Generate\" or \"Créer\" button"
+      }
+    ]
+  },
+  {
+    "id": "TC043",
+    "title": "Admin attempts to generate a report with an invalid month format and sees validation error",
+    "description": "Verifies the UI prevents or rejects invalid month input and shows a visible validation or error message.",
+    "category": "Reports & Exports",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" or \"Login\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Rapports\" in the admin sidebar or admin navigation menu"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Payroll\" from the report type dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Type \"2026/02\" into the month input field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Invalid\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC044",
+    "title": "Admin tries to generate a report without selecting a month and sees a required-field error",
+    "description": "Verifies the month field is required and the UI shows a visible error when generating without a month.",
+    "category": "Reports & Exports",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" or \"Login\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Rapports\" in the admin sidebar or admin navigation menu"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Payroll\" from the report type dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Generate\" or \"Créer\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Month\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC045",
+    "title": "Admin generates a report and sees a loading/in-progress state while it is being created",
+    "description": "Verifies the UI shows visible progress feedback (loading text/spinner) after clicking Generate.",
+    "category": "Reports & Exports",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" or \"Login\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Rapports\" in the admin sidebar or admin navigation menu"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Payroll\" from the report type dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Select \"2026-02\" from the month picker or month dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Generate\" or \"Créer\" button"
+      }
+    ]
+  },
+  {
+    "id": "TC046",
+    "title": "Non-admin user is blocked from generating reports (permission error shown)",
+    "description": "Verifies a non-admin authenticated user cannot generate reports and sees a visible permission/forbidden message in the UI.",
+    "category": "Reports & Exports",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"employee.user@example.com\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"wrong-or-nonadmin-password\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" or \"Login\" button"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin/dashboard/rapports"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Forbidden\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Not authorized\" is visible"
+      }
+    ]
+  }
+]

@@ -1,13 +1,20 @@
 'use client';
 
 import { useSession, signOut } from 'next-auth/react';
-import { usePathname } from 'next/navigation';
-import { Calendar, UserCircle, LogOut, ShieldCheck, User as UserIcon } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Calendar, UserCircle, LogOut, ShieldCheck, User as UserIcon, ChevronDown } from 'lucide-react';
+
+import { useDate } from '@/context/DateContext';
 
 export default function Header() {
     const pathname = usePathname();
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const { data: session } = useSession();
+    const { date, setDate } = useDate(); // Global Date
     const role = session?.user?.role;
+
+    const isAdmin = role === 'ADMIN';
 
     const displayFullName = session?.user?.name ||
         (session?.user?.prenom && session?.user?.nom ? `${session.user.prenom} ${session.user.nom}` : null) ||
@@ -44,6 +51,21 @@ export default function Header() {
                 </div>
 
                 <div className="flex items-center gap-10">
+                    {/* Admin Global Date Picker */}
+                    {isAdmin && (
+                        <div className="flex items-center gap-3 bg-slate-900 p-1.5 rounded-2xl shadow-xl shadow-slate-900/10 border border-slate-800">
+                            <div className="flex items-center bg-slate-800 rounded-xl px-4 py-2 border border-slate-700/50">
+                                <Calendar className="w-4 h-4 text-blue-400 mr-3" />
+                                <input
+                                    type="date"
+                                    value={date}
+                                    onChange={(e) => setDate(e.target.value)}
+                                    className="bg-transparent text-white text-[10px] font-black uppercase tracking-widest outline-none cursor-pointer"
+                                />
+                            </div>
+                        </div>
+                    )}
+
                     <div className="hidden lg:flex items-center gap-3 text-slate-500 bg-slate-50 px-5 py-2.5 rounded-2xl border border-slate-100 shadow-inner">
                         <Calendar className="w-4 h-4 text-blue-500" />
                         <p className="text-[10px] font-black uppercase tracking-[0.2em]">

@@ -1,0 +1,37 @@
+[
+  {
+    "id": "TC001",
+    "title": "authentication login success and failure",
+    "description": "Test login functionality for both Admin and Employee portals with valid and invalid credentials, ensuring correct redirection and error messages."
+  },
+  {
+    "id": "TC002",
+    "title": "employee profile access and payslip download",
+    "description": "Verify that authenticated employees can view their profile and download payslips, and unauthenticated users are redirected to login."
+  },
+  {
+    "id": "TC003",
+    "title": "attendance sheet daily entry and editing",
+    "description": "Test Chef de Chantier's ability to add and edit daily attendance and advances, including validation errors and access restrictions for Admins."
+  },
+  {
+    "id": "TC004",
+    "title": "payroll calculation with advances and overtime",
+    "description": "Validate payroll calculations including base month logic, advances approval and rejection, overtime pay calculation, and negative salary debt reporting."
+  },
+  {
+    "id": "TC005",
+    "title": "admin dashboard reporting and pdf generation",
+    "description": "Verify Admin dashboard access, real-time charts display, and generation of global recap and individual payslip PDFs with correct data."
+  },
+  {
+    "id": "TC006",
+    "title": "messaging api authentication and error handling",
+    "description": "Test the internal messaging API endpoint for authenticated and unauthenticated access, and handling of database errors."
+  },
+  {
+    "id": "TC007",
+    "title": "prisma schema migration and db connection",
+    "description": "Validate successful and failed Prisma schema migrations and application behavior on database connection failures."
+  }
+]

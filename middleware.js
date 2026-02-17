@@ -40,8 +40,12 @@ export default withAuth(
 
         // CHEF -> Uniquement /chef/...
         if (pathname.startsWith("/chef") && role !== "CHEF") {
-            // Un admin PEUT accéder au portail chef pour supervision
-            if (role !== "ADMIN") {
+            // Un admin PEUT accéder au portail chef pour supervision, SAUF la page de saisie active
+            if (role === "ADMIN") {
+                if (pathname === "/chef/pointage") {
+                    return NextResponse.redirect(new URL("/admin/dashboard/historique", req.url));
+                }
+            } else {
                 return NextResponse.redirect(new URL("/user/profile", req.url));
             }
         }

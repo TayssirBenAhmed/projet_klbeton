@@ -58,6 +58,26 @@ export async function POST(request) {
 
         const data = await request.json();
 
+        // --- ENFORCEMENT OF MONTHLY LOCKING ---
+        if (session.user.role !== 'ADMIN') {
+            const targetDate = new Date(data.date);
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth(); // 0-indexed
+
+            const targetYear = targetDate.getFullYear();
+            const targetMonth = targetDate.getMonth();
+
+            const isLocked = (targetYear < currentYear) || (targetYear === currentYear && targetMonth < currentMonth);
+
+            if (isLocked) {
+                return NextResponse.json(
+                    { error: 'Impossible de modifier un mois déjà clôturé.' },
+                    { status: 403 }
+                );
+            }
+        }
+
         if (data.bulk && Array.isArray(data.pointages)) {
             const { creerPointagesEnMasse } = await import('@/lib/use-cases/pointage/creerPointage');
             const result = await creerPointagesEnMasse(data);

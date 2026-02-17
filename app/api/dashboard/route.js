@@ -16,33 +16,36 @@ export async function GET(request) {
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
 
+        const { searchParams } = new URL(request.url);
         const maintenant = new Date();
-        const anneeActuelle = maintenant.getFullYear();
-        const moisActuel = maintenant.getMonth() + 1;
+        const month = parseInt(searchParams.get('month') || searchParams.get('mois')) || (maintenant.getMonth() + 1);
+        const year = parseInt(searchParams.get('year') || searchParams.get('annee')) || maintenant.getFullYear();
+
         const aujourdhui = new Date(Date.UTC(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate()));
+        const estMoisActuel = month === (maintenant.getMonth() + 1) && year === maintenant.getFullYear();
+
+        const debutMois = new Date(Date.UTC(year, month - 1, 1));
+        const finMois = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
         // Total employés actifs
         const totalEmployes = await prisma.employe.count({
             where: { statut: 'ACTIF' },
         });
 
-        // Pointages du jour
-        const pointagesAujourdhui = await prisma.pointage.findMany({
+        // Validation du jour (réel)
+        const pointagesAujourdhuiBrut = await prisma.pointage.findMany({
             where: {
                 date: {
                     gte: aujourdhui,
                     lt: new Date(aujourdhui.getTime() + 24 * 60 * 60 * 1000)
                 }
-            },
-            include: {
-                employe: { select: { nom: true, prenom: true } },
-            },
+            }
         });
 
-        // Taux de présence du mois
-        const { ouvrables } = calculerJoursOuvrables(moisActuel, anneeActuelle);
-        const debutMois = new Date(Date.UTC(anneeActuelle, moisActuel - 1, 1));
-        const finMois = new Date(Date.UTC(anneeActuelle, moisActuel, 0, 23, 59, 59));
+        const isJournalValide = pointagesAujourdhuiBrut.length >= totalEmployes && totalEmployes > 0;
+
+        // Taux de présence du mois sélectionné
+        const { ouvrables } = calculerJoursOuvrables(month, year);
 
         const pointagesMois = await prisma.pointage.findMany({
             where: {
@@ -58,16 +61,22 @@ export async function GET(request) {
         const tauxPresenceMois = capaciteTotale > 0 ? Math.round((joursPresentsMois / capaciteTotale) * 100) : 0;
         const totalHeuresSupp = pointagesMois.reduce((sum, p) => sum + p.heuresSupp, 0);
 
-        // 1. DOUGHNUT DATA (Aujourd'hui)
-        const repartitionAujourdhui = {
-            PRESENT: pointagesAujourdhui.filter(p => p.statut === 'PRESENT').length,
-            ABSENT: pointagesAujourdhui.filter(p => p.statut === 'ABSENT').length,
-            CONGE: pointagesAujourdhui.filter(p => p.statut === 'CONGE').length,
-            MALADIE: pointagesAujourdhui.filter(p => p.statut === 'MALADIE').length,
-            FERIE: pointagesAujourdhui.filter(p => p.statut === 'FERIE').length,
+        // 1. DOUGHNUT DATA (Aujourd'hui - SEULEMENT SI MOIS ACTUEL ET VALIDE)
+        let repartitionAujourdhui = {
+            PRESENT: 0, ABSENT: 0, CONGE: 0, MALADIE: 0, FERIE: 0
         };
 
-        // 2. BAR CHART DATA (Avances du mois - Evolution par semaine)
+        if (estMoisActuel && isJournalValide) {
+            repartitionAujourdhui = {
+                PRESENT: pointagesAujourdhuiBrut.filter(p => p.statut === 'PRESENT').length,
+                ABSENT: pointagesAujourdhuiBrut.filter(p => p.statut === 'ABSENT').length,
+                CONGE: pointagesAujourdhuiBrut.filter(p => p.statut === 'CONGE').length,
+                MALADIE: pointagesAujourdhuiBrut.filter(p => p.statut === 'MALADIE').length,
+                FERIE: pointagesAujourdhuiBrut.filter(p => p.statut === 'FERIE').length,
+            };
+        }
+
+        // 2. BAR CHART DATA (Avances du mois sélectionné - Evolution par semaine)
         const advancesByWeek = [];
         for (let i = 0; i < 4; i++) {
             const start = new Date(debutMois.getTime() + i * 7 * 24 * 60 * 60 * 1000);
@@ -76,9 +85,10 @@ export async function GET(request) {
                 where: { date: { gte: start, lt: end } },
                 _sum: { montant: true }
             });
-            advancesByWeek.push({ week: `Semaine ${i + 1}`, total: sum._sum.montant || 0 });
+            advancesByWeek.push({ week: `Sem. ${i + 1}`, total: sum._sum.montant || 0 });
         }
 
+        // 3. HS Evolution
         const hsWeeklyByEmployee = [];
         const employesAvecHS = await prisma.employe.findMany({
             where: { pointages: { some: { date: { gte: debutMois, lte: finMois }, heuresSupp: { gt: 0 } } } },
@@ -112,7 +122,7 @@ export async function GET(request) {
             .filter(e => e.total >= 1)
             .sort((a, b) => b.total - a.total);
 
-        // 4. TOTAL AVANCES (Mensuel)
+        // 4. TOTAL AVANCES (Sélection)
         const resultAvances = await prisma.avance.aggregate({
             where: {
                 date: { gte: debutMois, lte: finMois },
@@ -120,39 +130,37 @@ export async function GET(request) {
             _sum: { montant: true },
         });
 
-        // 5. ABSENCES ET PRÉSENCES DU JOUR (Détails pour les listes)
-        const absencesJour = pointagesAujourdhui
-            .filter(p => p.statut === 'ABSENT' || p.statut === 'MALADIE')
-            .map(p => ({
+        // 5. ABSENCES ET PRÉSENCES DU JOUR (SEULEMENT SI MOIS ACTUEL ET VALIDE)
+        let absencesJour = [];
+        let presencesJour = [];
+
+        if (estMoisActuel && isJournalValide) {
+            // Re-fetch with details for UI if needed or use previous data
+            const detailPointages = await prisma.pointage.findMany({
+                where: {
+                    date: { gte: aujourdhui, lt: new Date(aujourdhui.getTime() + 24 * 60 * 60 * 1000) }
+                },
+                include: { employe: { select: { nom: true, prenom: true, photo: true, poste: true } } }
+            });
+
+            absencesJour = detailPointages
+                .filter(p => p.statut === 'ABSENT' || p.statut === 'MALADIE')
+                .map(p => ({
+                    nom: p.employe.nom,
+                    prenom: p.employe.prenom,
+                    statut: p.statut
+                }));
+
+            presencesJour = detailPointages.slice(0, 10).map(p => ({
+                id: p.id,
                 nom: p.employe.nom,
                 prenom: p.employe.prenom,
-                statut: p.statut
+                photo: p.employe.photo,
+                poste: p.employe.poste,
+                statut: p.statut,
+                heureValidation: p.updatedAt
             }));
-
-        // Nouveau: Derniers Pointages (Temps Réel) - Les 5 derniers modifiés
-        const derniersPointages = await prisma.pointage.findMany({
-            where: {
-                date: {
-                    gte: aujourdhui,
-                    lt: new Date(aujourdhui.getTime() + 24 * 60 * 60 * 1000)
-                }
-            },
-            take: 5,
-            orderBy: { updatedAt: 'desc' },
-            include: {
-                employe: { select: { nom: true, prenom: true, photo: true, poste: true } }
-            }
-        });
-
-        const presencesJour = derniersPointages.map(p => ({
-            id: p.id,
-            nom: p.employe.nom,
-            prenom: p.employe.prenom,
-            photo: p.employe.photo,
-            poste: p.employe.poste,
-            statut: p.statut,
-            heureValidation: p.updatedAt
-        }));
+        }
 
         return NextResponse.json({
             stats: {
@@ -167,7 +175,9 @@ export async function GET(request) {
             hsWeeklyByEmployee,
             absencesJour,
             presencesJour,
-            isJournalValide: pointagesAujourdhui.length >= totalEmployes && totalEmployes > 0
+            isJournalValide: isJournalValide,
+            moisSelectionne,
+            anneeSelectionnee
         });
     } catch (error) {
         console.error('Erreur GET /api/dashboard:', error);

@@ -1,0 +1,76 @@
+{
+    "tech_stack": [
+        "JavaScript",
+        "Next.js",
+        "React",
+        "Tailwind CSS",
+        "Prisma",
+        "PostgreSQL",
+        "NextAuth.js",
+        "Framer Motion",
+        "Lucide React"
+    ],
+    "features": [
+        {
+            "name": "Authentication",
+            "description": "Handles user login for Admins and Employees using NextAuth.js with Credentials provider.",
+            "files": [
+                "app/api/auth/[...nextauth]/route.js",
+                "app/(auth)/login-admin/page.js",
+                "app/(auth)/employee-login/page.js"
+            ]
+        },
+        {
+            "name": "Employee Management",
+            "description": "CRUD operations for managing employees, including personal details, roles (Admin, Chef, Employee), and salary info.",
+            "files": [
+                "app/api/employes/route.js",
+                "app/api/employes/[id]/route.js",
+                "app/(dashboard)/(admin)/admin/dashboard/employes/page.js",
+                "app/(dashboard)/(admin)/admin/dashboard/employes/[id]/page.js"
+            ]
+        },
+        {
+            "name": "Attendance (Pointage)",
+            "description": "Tracking daily attendance (Présent, Absent, Congé,etc.) and overtime. Accessible by Admins and Chefs.",
+            "files": [
+                "app/api/pointages/route.js",
+                "app/(dashboard)/(admin)/admin/dashboard/pointage/page.js",
+                "app/(dashboard)/(chef)/chef/pointage/page.js"
+            ]
+        },
+        {
+            "name": "Salary Advances (Finance)",
+            "description": "Management of employee salary advances. Deducted from payroll.",
+            "files": [
+                "app/api/avances/route.js",
+                "app/(dashboard)/(admin)/admin/dashboard/finances/page.js"
+            ]
+        },
+        {
+            "name": "Dashboard Statistics",
+            "description": "Aggregated statistics for the Admin dashboard (total employees, present today, total advances, etc.).",
+            "files": [
+                "app/api/dashboard/stats/route.js",
+                "app/(dashboard)/(admin)/admin/dashboard/page.js"
+            ]
+        },
+        {
+            "name": "Messaging",
+            "description": "Internal messaging system between users.",
+            "files": [
+                "app/api/messages/route.js",
+                "app/api/messages/unread/route.js",
+                "app/api/users/chat-contacts/route.js",
+                "app/(dashboard)/messages/page.js"
+            ]
+        },
+        {
+            "name": "Reports & Exports",
+            "description": "Generating monthly attendance and payroll reports, with PDF export.",
+            "files": [
+                "app/(dashboard)/(admin)/admin/dashboard/rapports/page.js"
+            ]
+        }
+    ]
+}

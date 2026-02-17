@@ -96,6 +96,7 @@ export default function LoginAdminPage() {
                                             className="w-full pl-12 pr-4 py-3.5 bg-slate-950/50 border border-white/5 rounded-xl text-sm font-medium text-white placeholder:text-slate-600 focus:bg-slate-900 focus:border-blue-600/50 outline-none transition-all"
                                             placeholder="admin@klbeton.tn"
                                             required
+                                            data-testid="admin-email-input"
                                         />
                                     </div>
                                 </div>
@@ -113,6 +114,7 @@ export default function LoginAdminPage() {
                                             className="w-full pl-12 pr-4 py-3.5 bg-slate-950/50 border border-white/5 rounded-xl text-sm font-medium text-white placeholder:text-slate-600 focus:bg-slate-900 focus:border-blue-600/50 outline-none transition-all"
                                             placeholder="••••••••"
                                             required
+                                            data-testid="admin-password-input"
                                         />
                                     </div>
                                 </div>
@@ -121,6 +123,7 @@ export default function LoginAdminPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
+                                data-testid="admin-login-submit"
                                 className={`w-full py-4 rounded-xl text-sm font-bold uppercase tracking-wide transition-all shadow-lg ${loading
                                     ? 'bg-slate-800 text-slate-500 cursor-wait'
                                     : 'bg-blue-600 text-white hover:bg-blue-500'

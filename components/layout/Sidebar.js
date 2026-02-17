@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,7 +19,8 @@ import {
     User,
     CheckCircle2,
     X,
-    AlertCircle
+    AlertCircle,
+    MessageSquare
 } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 
@@ -27,12 +28,34 @@ export default function Sidebar() {
     const pathname = usePathname();
     const { data: session } = useSession();
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
     const role = session?.user?.role;
+
+    // Poll for unread messages
+    useEffect(() => {
+        const fetchUnread = async () => {
+            try {
+                const res = await fetch('/api/messages/unread');
+                const data = await res.json();
+                setUnreadCount(data.count || 0);
+            } catch (error) {
+                console.error('Error fetching unread count', error);
+            }
+        };
+
+        if (session) {
+            fetchUnread();
+            const interval = setInterval(fetchUnread, 15000);
+            return () => clearInterval(interval);
+        }
+    }, [session]);
 
     const adminNavigation = [
         { name: "Tableau de bord", href: "/admin/dashboard", icon: LayoutDashboard },
         { name: "Gestion Employés", href: "/admin/dashboard/employes", icon: Users },
+        { name: "Historique Pointages", href: "/admin/dashboard/historique", icon: Calendar },
         { name: "Finances", href: "/admin/dashboard/finances", icon: Wallet },
+        { name: "Messages", href: "/messages", icon: MessageSquare, badge: true },
         { name: "Rapports & Exports", href: "/admin/dashboard/rapports", icon: FileBarChart },
         { name: "Paramètres", href: "/admin/dashboard/profile", icon: Settings },
     ];
@@ -40,6 +63,7 @@ export default function Sidebar() {
     const chefNavigation = [
         { name: "Saisie du Jour", href: "/chef/pointage", icon: ClipboardList },
         { name: "Historique", href: "/chef/historique", icon: Calendar },
+        { name: "Messages", href: "/messages", icon: MessageSquare, badge: true },
         { name: "Paramètres", href: "/chef/profile", icon: Settings },
     ];
 
@@ -118,22 +142,37 @@ export default function Sidebar() {
                                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                 />
                             )}
-                            <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${active ? 'text-blue-500' : ''}`} />
+                            <div className="relative">
+                                <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${active ? 'text-blue-500' : ''}`} />
+                                {item.badge && unreadCount > 0 && !isCollapsed && (
+                                    <span className="absolute -top-2 -right-2 bg-rose-500 text-white w-4 h-4 flex items-center justify-center rounded-full text-[9px] font-black shadow-sm ring-2 ring-white">
+                                        {unreadCount > 9 ? '9+' : unreadCount}
+                                    </span>
+                                )}
+                            </div>
+
                             {!isCollapsed && (
                                 <motion.span
                                     initial={false}
                                     animate={{ opacity: 1 }}
-                                    className="whitespace-nowrap"
+                                    className="whitespace-nowrap flex-1"
                                 >
                                     {item.name}
                                 </motion.span>
                             )}
-                            {active && !isCollapsed && (
+
+                            {/* Short badge if collapsed or active indicator */}
+                            {active && !isCollapsed && !item.badge && (
                                 <motion.div
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
                                     className="absolute right-4 w-1.5 h-1.5 bg-blue-500 rounded-full"
                                 />
+                            )}
+                            {item.badge && unreadCount > 0 && !isCollapsed && (
+                                <span className="bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full text-[9px] font-black">
+                                    {unreadCount}
+                                </span>
                             )}
                         </Link>
                     );

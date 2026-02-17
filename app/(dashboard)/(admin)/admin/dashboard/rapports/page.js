@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FileBarChart,
@@ -13,11 +13,41 @@ import {
     Clock,
     User,
     ChevronRight,
-    Search
+    Search,
+    BarChart3,
+    Printer
 } from 'lucide-react';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    LineElement,
+    PointElement,
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement,
+    Filler
+} from 'chart.js';
+import { Bar, Line } from 'react-chartjs-2';
 import { generateProfessionalPDF } from '@/lib/services/pdfService';
 import { genererPdfGlobal } from '@/lib/services/globalPdfService';
 import SuccessModal from '@/components/ui/SuccessModal';
+
+// Register Chart.js components
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    LineElement,
+    PointElement,
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement,
+    Filler
+);
 
 export default function RapportsPage() {
     const [mois, setMois] = useState(new Date().getMonth() + 1);
@@ -39,20 +69,103 @@ export default function RapportsPage() {
         }
     };
 
-    const exportToPDF = () => {
-        if (!rapport) return;
-        generateProfessionalPDF(rapport[0] || rapport, mois, annee);
+    const exportToPDF = async (empData) => {
+        if (!empData) return;
+        setLoading(true);
+        await generateProfessionalPDF(empData, mois, annee);
+        setLoading(false);
         setShowSuccess(true);
     };
 
-    const exportGlobalPDF = () => {
+    const exportGlobalPDF = async () => {
         if (!Array.isArray(rapport)) return;
-        genererPdfGlobal(rapport, mois, annee);
+        setLoading(true);
+        await genererPdfGlobal(rapport, mois, annee);
+        setLoading(false);
         setShowSuccess(true);
     };
+
+    // Build chart data from rapport
+    const chartData = useMemo(() => {
+        if (!rapport || !Array.isArray(rapport)) return null;
+
+        const labels = rapport.map(emp => `${emp.employe.nom} ${emp.employe.prenom?.charAt(0)}.`);
+
+        const attendanceChart = {
+            labels,
+            datasets: [
+                {
+                    label: 'Présences (jours)',
+                    data: rapport.map(emp => emp.pointages?.presence || 0),
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: 'rgb(16, 185, 129)',
+                    borderWidth: 1,
+                    borderRadius: 8,
+                },
+                {
+                    label: 'Absences (jours)',
+                    data: rapport.map(emp => emp.pointages?.absence || 0),
+                    backgroundColor: 'rgba(244, 63, 94, 0.7)',
+                    borderColor: 'rgb(244, 63, 94)',
+                    borderWidth: 1,
+                    borderRadius: 8,
+                }
+            ]
+        };
+
+        const overtimeChart = {
+            labels,
+            datasets: [
+                {
+                    label: 'Overtime (heures)',
+                    data: rapport.map(emp => emp.pointages?.heuresSupp || 0),
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointBackgroundColor: 'rgb(59, 130, 246)',
+                }
+            ]
+        };
+
+        return { attendanceChart, overtimeChart };
+    }, [rapport]);
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: { font: { weight: 'bold', size: 11 }, padding: 16 }
+            },
+        },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } },
+            x: {
+                grid: { display: false },
+                ticks: {
+                    font: { size: 10, weight: '600' },
+                    maxRotation: 45,
+                    minRotation: 45
+                }
+            }
+        }
+    };
+
+    // Calculate financial summary
+    const financialSummary = useMemo(() => {
+        if (!rapport || !Array.isArray(rapport)) return null;
+        const totalBrut = rapport.reduce((sum, emp) => sum + (emp.salaire?.salaireBrut || 0), 0);
+        const totalNet = rapport.reduce((sum, emp) => sum + (emp.salaire?.salaireNet || 0), 0);
+        const totalAvances = rapport.reduce((sum, emp) => sum + (emp.salaire?.totalAvances || 0), 0);
+        const totalDebt = rapport.reduce((sum, emp) => sum + (emp.salaire?.resteARembourser || 0), 0);
+        return { totalBrut, totalNet, totalAvances, totalDebt };
+    }, [rapport]);
 
     return (
-        <div className="max-w-6xl mx-auto space-y-10 pb-12">
+        <div className="max-w-6xl mx-auto space-y-10 pb-12" data-testid="rapports-page">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
@@ -60,17 +173,25 @@ export default function RapportsPage() {
                         <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
                             <FileBarChart className="w-7 h-7" />
                         </div>
-                        Rapports & Paie
+                        Rapports &amp; Paie
                     </h1>
                     <p className="text-slate-500 font-medium mt-1">Analyse des performances et consolidation financière mensuelle</p>
                 </div>
                 {rapport && (
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 flex-wrap">
                         <button
                             onClick={exportGlobalPDF}
                             className="btn bg-blue-700 hover:bg-blue-800 text-white gap-2 text-[10px] font-black uppercase tracking-widest px-8 shadow-xl shadow-blue-700/20"
+                            data-testid="btn-global-recap"
                         >
-                            <FileText className="w-4 h-4" /> Exporter le Rapport Global (PDF)
+                            <FileText className="w-4 h-4" /> Global Recap
+                        </button>
+                        <button
+                            onClick={exportGlobalPDF}
+                            className="btn bg-emerald-700 hover:bg-emerald-800 text-white gap-2 text-[10px] font-black uppercase tracking-widest px-8 shadow-xl shadow-emerald-700/20"
+                            data-testid="btn-generate-pdf"
+                        >
+                            <Download className="w-4 h-4" /> Generate PDF
                         </button>
                     </div>
                 )}
@@ -87,6 +208,7 @@ export default function RapportsPage() {
                                 value={mois}
                                 onChange={(e) => setMois(parseInt(e.target.value))}
                                 className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold text-slate-700 outline-none appearance-none focus:ring-2 focus:ring-blue-500/20"
+                                data-testid="month-selector"
                             >
                                 {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                                     <option key={m} value={m}>
@@ -114,6 +236,7 @@ export default function RapportsPage() {
                         onClick={genererRapport}
                         disabled={loading}
                         className="btn bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-900/10"
+                        data-testid="btn-generer-rapport"
                     >
                         {loading ? (
                             <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto" />
@@ -133,6 +256,57 @@ export default function RapportsPage() {
                         exit={{ opacity: 0, y: -20 }}
                         className="space-y-8"
                     >
+                        {/* Financial Summary Section */}
+                        {financialSummary && (
+                            <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 p-8 rounded-[32px] border border-slate-200 shadow-lg" data-testid="financial-summary">
+                                <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-6 flex items-center gap-2">
+                                    <Wallet className="w-5 h-5 text-blue-600" /> Financial Summary
+                                </h2>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Masse Salariale Brut</p>
+                                        <p className="text-xl font-black text-slate-900">{financialSummary.totalBrut.toFixed(3)} <span className="text-xs text-slate-400">TND</span></p>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Masse Salariale Net</p>
+                                        <p className="text-xl font-black text-emerald-600">{financialSummary.totalNet.toFixed(3)} <span className="text-xs text-slate-400">TND</span></p>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Avances</p>
+                                        <p className="text-xl font-black text-amber-600">{financialSummary.totalAvances.toFixed(3)} <span className="text-xs text-slate-400">TND</span></p>
+                                    </div>
+                                    {financialSummary.totalDebt > 0 && (
+                                        <div className="bg-rose-50 p-4 rounded-2xl border-2 border-rose-200 shadow-sm" data-testid="debt-summary">
+                                            <p className="text-[9px] font-black text-rose-500 uppercase tracking-widest mb-1">Dette à recouvrer</p>
+                                            <p className="text-xl font-black text-rose-600">{financialSummary.totalDebt.toFixed(3)} <span className="text-xs text-rose-400">TND</span></p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Charts Section */}
+                        {chartData && (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" data-testid="charts-section">
+                                <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/40">
+                                    <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                        <BarChart3 className="w-4 h-4 text-emerald-500" /> Attendance
+                                    </h3>
+                                    <div style={{ height: '280px' }}>
+                                        <Bar data={chartData.attendanceChart} options={chartOptions} />
+                                    </div>
+                                </div>
+                                <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/40">
+                                    <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                        <TrendingUp className="w-4 h-4 text-blue-500" /> Overtime
+                                    </h3>
+                                    <div style={{ height: '280px' }}>
+                                        <Line data={chartData.overtimeChart} options={chartOptions} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Summary Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/40">
@@ -142,35 +316,24 @@ export default function RapportsPage() {
                                 </p>
                             </div>
 
-                            {/* Dette à recouvrir (si existante) */}
-                            {((Array.isArray(rapport) ? rapport.reduce((sum, emp) => sum + (emp.salaire?.resteARembourser || 0), 0) : (rapport.salaire?.resteARembourser || 0)) > 0) ? (
-                                <div className="bg-rose-50 p-6 rounded-[32px] border-2 border-rose-200 shadow-xl shadow-rose-100/40">
-                                    <p className="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em] mb-2">Dette à Recouvrer</p>
-                                    <p className="text-3xl font-black text-rose-600">
-                                        {(Array.isArray(rapport)
-                                            ? rapport.reduce((sum, emp) => sum + (emp.salaire?.resteARembourser || 0), 0)
-                                            : (rapport.salaire?.resteARembourser || 0)).toFixed(3)} <span className="text-xs font-bold opacity-60">DT</span>
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/40">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Total H. Supp</p>
-                                    <p className="text-3xl font-black text-blue-600">
-                                        +{Array.isArray(rapport) ? rapport.reduce((sum, emp) => sum + (emp.pointages?.heuresSupp || 0), 0).toFixed(1) : (rapport.pointages?.heuresSupp || 0).toFixed(1)} <span className="text-xs font-bold text-slate-400">heures</span>
-                                    </p>
-                                </div>
-                            )}
+                            <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/40">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Heures supplémentaires</p>
+                                <p className="text-3xl font-black text-blue-600">
+                                    +{Array.isArray(rapport) ? rapport.reduce((sum, emp) => sum + (emp.pointages?.heuresSupp || 0), 0).toFixed(1) : (rapport.pointages?.heuresSupp || 0).toFixed(1)} <span className="text-xs font-bold text-slate-400">heures</span>
+                                </p>
+                            </div>
 
                             <div className="bg-slate-900 p-6 rounded-[32px] text-white shadow-xl shadow-slate-900/20">
-                                <p className="text-[10px] font-black opacity-60 uppercase tracking-[0.2em] mb-2">Masse Salariale Net</p>
+                                <p className="text-[10px] font-black opacity-60 uppercase tracking-[0.2em] mb-2">Salaire Net Total</p>
                                 <p className="text-3xl font-black text-emerald-400">
                                     {(Array.isArray(rapport)
                                         ? rapport.reduce((sum, emp) => sum + (emp.salaire?.salaireNet || 0), 0)
-                                        : (rapport.salaire?.salaireNet || 0)).toFixed(3)} <span className="text-xs font-bold opacity-60">DT</span>
+                                        : (rapport.salaire?.salaireNet || 0)).toFixed(3)} <span className="text-xs font-bold opacity-60">TND</span>
                                 </p>
                             </div>
                         </div>
 
+                        {/* Employee Cards */}
                         {Array.isArray(rapport) ? (
                             <div className="grid grid-cols-1 gap-8">
                                 {rapport.map((emp, idx) => (
@@ -180,6 +343,7 @@ export default function RapportsPage() {
                                         transition={{ delay: idx * 0.1 }}
                                         key={emp.employe.id}
                                         className="bg-white rounded-[32px] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden group hover:border-blue-200 transition-all"
+                                        data-testid={`employee-card-${emp.employe.id}`}
                                     >
                                         <div className="p-8 flex flex-col lg:flex-row items-start lg:items-center gap-8">
                                             {/* Employee Info */}
@@ -198,7 +362,7 @@ export default function RapportsPage() {
                                             {/* Quick Stats Row */}
                                             <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
                                                 <div className="px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100/50 relative overflow-hidden">
-                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Présences</p>
+                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Jours</p>
                                                     <p className={`text-lg font-black ${emp.pointages.presence > 26 ? 'text-blue-600' : 'text-emerald-600'}`}>
                                                         {emp.pointages.presence}j
                                                     </p>
@@ -213,20 +377,30 @@ export default function RapportsPage() {
                                                     <p className="text-lg font-black text-rose-600">{emp.pointages.absence}j</p>
                                                 </div>
                                                 <div className="px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100/50">
-                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Congés</p>
-                                                    <p className="text-lg font-black text-amber-600">{emp.pointages.conge}j</p>
+                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Taux journalier</p>
+                                                    <p className="text-lg font-black text-slate-700">{emp.salaire.tauxJournalier.toFixed(2)} <span className="text-[9px] text-slate-400">TND</span></p>
                                                 </div>
                                                 <div className="px-6 py-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
-                                                    <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">H. Supp</p>
+                                                    <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Heures supplémentaires</p>
                                                     <p className="text-lg font-black text-blue-600">+{emp.pointages.heuresSupp}h</p>
                                                 </div>
                                             </div>
 
-                                            {/* Salary Summary */}
-                                            <div className="lg:text-right min-w-[200px] bg-slate-900 p-6 rounded-2xl text-white relative overflow-hidden group-hover:bg-blue-900 transition-colors">
-                                                <Wallet className="absolute -bottom-2 -right-2 w-16 h-16 opacity-10 -rotate-12" />
-                                                <p className="text-[8px] font-black opacity-60 uppercase tracking-widest mb-1">Salaire Net Mensuel</p>
-                                                <p className="text-2xl font-black">{emp.salaire.salaireNet.toLocaleString()} <span className="text-xs font-bold text-blue-400">TND</span></p>
+                                            {/* Salary Summary + PDF */}
+                                            <div className="flex items-center gap-4 min-w-[260px]">
+                                                <div className="flex-1 bg-slate-900 p-6 rounded-2xl text-white relative overflow-hidden group-hover:bg-blue-900 transition-colors">
+                                                    <Wallet className="absolute -bottom-2 -right-2 w-16 h-16 opacity-10 -rotate-12" />
+                                                    <p className="text-[8px] font-black opacity-60 uppercase tracking-widest mb-1">Net Mensuel</p>
+                                                    <p className="text-2xl font-black">{emp.salaire.salaireNet.toLocaleString()} <span className="text-xs font-bold text-blue-400">TND</span></p>
+                                                </div>
+                                                <button
+                                                    onClick={() => exportToPDF(emp)}
+                                                    className="w-14 h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-colors shrink-0"
+                                                    data-testid={`btn-pdf-individual-${emp.employe.id}`}
+                                                    title="Generate Individual PDF"
+                                                >
+                                                    <Printer className="w-6 h-6" />
+                                                </button>
                                             </div>
                                         </div>
 
@@ -234,28 +408,34 @@ export default function RapportsPage() {
                                         <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-100 flex flex-wrap gap-x-12 gap-y-4">
                                             <div className="flex items-center gap-2">
                                                 <div className="w-2 h-2 rounded-full bg-slate-300" />
-                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Base: {emp.salaire.joursBaseCalcul}j (26 + {emp.salaire.joursExtraTravailles} extra)</span>
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Base: 26 jours ({emp.salaire.joursBaseCalcul}j calculés)</span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <div className="w-2 h-2 rounded-full bg-slate-300" />
-                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Journalier: {emp.salaire.tauxJournalier.toFixed(2)} TND</span>
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Taux journalier: {emp.salaire.tauxJournalier.toFixed(2)} TND</span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <div className="w-2 h-2 rounded-full bg-slate-300" />
-                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Horaire: {emp.salaire.tauxHoraire.toFixed(2)} TND</span>
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Taux horaire: {emp.salaire.tauxHoraire.toFixed(2)} TND ×1.25</span>
                                             </div>
                                             <div className="flex items-center gap-2 text-emerald-600">
                                                 <TrendingUp className="w-3 h-3" />
-                                                <span className="text-[10px] font-black uppercase tracking-widest">H. Supp: +{emp.salaire.montantHeuresSupp.toLocaleString()} TND</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest">Heures supplémentaires: +{emp.salaire.montantHeuresSupp.toLocaleString()} TND</span>
                                             </div>
                                             <div className="flex items-center gap-2 text-rose-500 font-black">
                                                 <AlertCircle className="w-3 h-3" />
                                                 <span className="text-[10px] font-black uppercase tracking-widest">Absences: -{emp.salaire.deductionAbsences.toLocaleString()} TND</span>
                                             </div>
-                                            {emp.salaire.resteARembourser > 0 && (
-                                                <div className="flex items-center gap-2 text-rose-700 bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
+                                            {emp.salaire.salaireNet === 0 && emp.salaire.resteARembourser > 0 && (
+                                                <div className="flex items-center gap-2 text-rose-700 bg-rose-50 px-3 py-1 rounded-full border border-rose-200" data-testid={`debt-display-${emp.employe.id}`}>
                                                     <AlertCircle className="w-3 h-3" />
-                                                    <span className="text-[9px] font-black uppercase tracking-widest">Dette à recouvrir: {emp.salaire.resteARembourser.toFixed(3)} DT</span>
+                                                    <span className="text-[9px] font-black uppercase tracking-widest">Dette à recouvrer: {emp.salaire.resteARembourser.toFixed(3)} TND</span>
+                                                </div>
+                                            )}
+                                            {emp.salaire.resteARembourser > 0 && emp.salaire.salaireNet > 0 && (
+                                                <div className="flex items-center gap-2 text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200" data-testid={`debt-display-${emp.employe.id}`}>
+                                                    <AlertCircle className="w-3 h-3" />
+                                                    <span className="text-[9px] font-black uppercase tracking-widest">Dette à recouvrer: {emp.salaire.resteARembourser.toFixed(3)} TND</span>
                                                 </div>
                                             )}
                                         </div>
@@ -275,6 +455,7 @@ export default function RapportsPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         className="text-center py-32 bg-slate-50/50 rounded-[48px] border-2 border-dashed border-slate-200"
+                        data-testid="awaiting-calculation"
                     >
                         <Clock className="w-16 h-16 text-slate-200 mx-auto mb-6" />
                         <h3 className="text-xl font-black text-slate-400 uppercase tracking-tight">En attente de calculs</h3>

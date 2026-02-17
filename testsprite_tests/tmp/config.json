@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "backend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000/http://localhost:3000/admin/dashboard?date=2026-02-17",
+  "backendAuthType": "basic token",
+  "backendUsername": "admin@klbeton.tn",
+  "backendPassword": "admin123",
+  "executionArgs": {
+    "projectName": "bettonapp",
+    "projectPath": "c:\\Users\\tayse\\OneDrive\\Desktop\\beton\\frontend\\bettonapp",
+    "testIds": [],
+    "additionalInstruction": "Focus on verifying the 'Feuille de Présence' link in admin sidebar and the new toast notifications.",
+    "envs": {
+      "API_KEY": "sk-user-NnW9Kaqf5YKGYY1WZdzv8ommVnMySpnOzytzxMH9hkJsJ5xkQlNmKG11JacGTXLOf-ClIdLKl8dZ_isPZsuLpY9qHh_mKt78-ZAGpP0Su-lp6Dta0m8CgcYDA77VB1DHbVc"
+    }
+  }
+}

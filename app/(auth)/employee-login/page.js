@@ -94,6 +94,7 @@ export default function LoginEmployeePage() {
                                     className="w-full px-8 py-5 bg-slate-50 border-3 border-transparent rounded-2xl font-bold text-slate-900 outline-none focus:bg-white focus:border-emerald-500 transition-all shadow-inner"
                                     placeholder="nom.prenom@klbeton.tn"
                                     required
+                                    data-testid="employee-email-input"
                                 />
                             </div>
 
@@ -106,12 +107,14 @@ export default function LoginEmployeePage() {
                                     className="w-full px-8 py-5 bg-slate-50 border-3 border-transparent rounded-2xl font-bold text-slate-900 outline-none focus:bg-white focus:border-emerald-500 transition-all shadow-inner"
                                     placeholder="••••••••"
                                     required
+                                    data-testid="employee-password-input"
                                 />
                             </div>
 
                             <button
                                 type="submit"
                                 disabled={loading}
+                                data-testid="employee-login-submit"
                                 className="w-full py-6 mt-4 bg-slate-900 text-white rounded-[24px] text-lg font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl active:scale-95 disabled:opacity-50"
                             >
                                 {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : "ACCÉDER AU PORTAIL"}

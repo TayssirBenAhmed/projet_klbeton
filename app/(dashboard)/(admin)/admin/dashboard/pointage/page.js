@@ -27,6 +27,7 @@ export default function PointagePage() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [isBulkMode, setIsBulkMode] = useState(true); // Default to Bulk Sheet mode
+    const [saveSuccess, setSaveSuccess] = useState(false);
     const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -152,7 +153,8 @@ export default function PointagePage() {
             });
 
             if (res.ok) {
-                alert('Journée enregistrée avec succès !');
+                setSaveSuccess(true);
+                setTimeout(() => setSaveSuccess(false), 4000);
                 fetchData();
             }
         } catch (error) {
@@ -199,7 +201,21 @@ export default function PointagePage() {
     }
 
     return (
-        <div className="space-y-8 pb-12">
+        <div className="space-y-8 pb-12" data-testid="feuille-presence-page">
+            {/* Success Toast */}
+            <AnimatePresence>
+                {saveSuccess && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -30 }}
+                        className="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] bg-emerald-600 text-white px-10 py-5 rounded-2xl shadow-2xl flex items-center gap-3 text-lg font-black uppercase tracking-wide"
+                        data-testid="save-success"
+                    >
+                        <CheckCircle2 className="w-7 h-7" /> Présence enregistrée avec succès
+                    </motion.div>
+                )}
+            </AnimatePresence>
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b-4 border-slate-900 pb-8">
                 <div>
@@ -320,6 +336,7 @@ export default function PointagePage() {
                                                     <button
                                                         key={opt.id}
                                                         onClick={() => handleSheetChange(emp.id, 'statut', opt.id)}
+                                                        data-testid={`status-btn-${emp.id}-${opt.id}`}
                                                         className={`px-3 py-2 rounded-xl font-black text-[10px] uppercase transition-all border-2 ${entry.statut === opt.id
                                                             ? `${opt.bg} text-white ${opt.border} shadow-lg scale-110 ring-2 ring-white/50`
                                                             : `bg-slate-50 text-slate-400 border-slate-200 hover:border-slate-300 hover:bg-white`
@@ -342,6 +359,7 @@ export default function PointagePage() {
                                                     type="number"
                                                     value={entry.heuresSupp}
                                                     onChange={(e) => handleSheetChange(emp.id, 'heuresSupp', parseFloat(e.target.value) || 0)}
+                                                    data-testid={`hs-input-${emp.id}`}
                                                     className="w-24 text-center text-2xl font-black bg-blue-50 border-3 border-blue-200 rounded-xl py-2 focus:border-blue-700 outline-none"
                                                 />
                                                 <button
@@ -396,6 +414,7 @@ export default function PointagePage() {
                         <button
                             onClick={handleSaveSheet}
                             disabled={loading}
+                            data-testid="save-sheet-btn"
                             className="flex-[2] md:flex-none btn btn-primary px-16 py-6 text-2xl shadow-blue-500/40 flex items-center justify-center gap-4"
                         >
                             <Save className="w-8 h-8" /> {loading ? 'SAUVEGARDE...' : 'VALIDER TOUTE LA JOURNÉE'}

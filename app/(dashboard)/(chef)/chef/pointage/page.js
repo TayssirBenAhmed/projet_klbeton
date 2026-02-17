@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ClipboardList,
@@ -28,16 +29,32 @@ export default function ChefPointagePage() {
     const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
     const [searchTerm, setSearchTerm] = useState('');
     const [sheetEntries, setSheetEntries] = useState({});
+    const [saveSuccess, setSaveSuccess] = useState(false);
+    const { data: session } = useSession();
+
+    const isLocked = useMemo(() => {
+        if (!session || session.user.role === 'ADMIN') return false;
+
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth(); // 0-indexed
+
+        const [selYear, selMonth] = filterDate.split('-').map(Number);
+        const selectedYear = selYear;
+        const selectedMonth = selMonth - 1; // 0-indexed
+
+        return (selectedYear < currentYear) || (selectedYear === currentYear && selectedMonth < currentMonth);
+    }, [filterDate, session]);
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [filterDate]);
 
     const fetchData = async () => {
         try {
             setLoading(true);
             const [pointagesRes, employesRes] = await Promise.all([
-                fetch('/api/pointages'),
+                fetch(`/api/pointages?dateDebut=${filterDate}&dateFin=${filterDate}`),
                 fetch('/api/employes'),
             ]);
 
@@ -86,11 +103,7 @@ export default function ChefPointagePage() {
         setSheetEntries(newEntries);
     };
 
-    useEffect(() => {
-        if (employes.length > 0) {
-            initializeSheet(employes, pointages, filterDate);
-        }
-    }, [filterDate, employes, pointages]);
+    // Removed redundant useEffect to avoid double initialization
 
     const handleSheetChange = (empId, field, value) => {
         setSheetEntries(prev => {
@@ -146,7 +159,8 @@ export default function ChefPointagePage() {
             }
 
             if (resPointage.ok) {
-                alert('Journée et avances enregistrées avec succès !');
+                setSaveSuccess(true);
+                setTimeout(() => setSaveSuccess(false), 4000);
                 fetchData();
             }
         } catch (error) {
@@ -171,8 +185,31 @@ export default function ChefPointagePage() {
         };
     }, [filteredEmployes, sheetEntries]);
 
+    const statutLabels = {
+        PRESENT: 'Présent',
+        ABSENT: 'Absent',
+        CONGE: 'Congé',
+        MALADIE: 'Maladie',
+        FERIE: 'Férié',
+    };
+
     return (
-        <div className="space-y-8 pb-12">
+        <div className="space-y-8 pb-12" data-testid="feuille-presence-page">
+            {/* Success toast */}
+            <AnimatePresence>
+                {saveSuccess && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -30 }}
+                        className="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] bg-emerald-600 text-white px-10 py-5 rounded-2xl shadow-2xl flex items-center gap-3 text-lg font-black uppercase tracking-wide"
+                        data-testid="save-success"
+                    >
+                        <CheckCircle2 className="w-7 h-7" /> Success — Journée enregistrée
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b-4 border-slate-900 pb-8">
                 <div>
                     <h1 className="text-5xl font-black text-slate-900 tracking-tight flex items-center gap-4 uppercase">
@@ -183,19 +220,42 @@ export default function ChefPointagePage() {
                     </p>
                 </div>
                 <div className="flex gap-4">
-                    <button
-                        onClick={handleSaveSheet}
-                        disabled={loading}
-                        className="btn btn-primary px-10 py-5 text-xl shadow-2xl flex items-center gap-3"
-                    >
-                        <Save className="w-7 h-7" /> {loading ? 'EN COURS...' : 'VALIDER LA JOURNÉE'}
-                    </button>
+                    {!isLocked && (
+                        <button
+                            onClick={handleSaveSheet}
+                            disabled={loading}
+                            className="btn btn-primary px-10 py-5 text-xl shadow-2xl flex items-center gap-3"
+                            data-testid="save-btn"
+                        >
+                            <Save className="w-7 h-7" /> {loading ? 'EN COURS...' : 'Save'}
+                        </button>
+                    )}
                 </div>
             </div>
 
+            {/* Locking Banner */}
+            {isLocked && (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-amber-50 border-4 border-amber-200 p-6 rounded-[32px] flex items-center justify-between shadow-lg"
+                >
+                    <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                            <AlertCircle className="w-8 h-8" />
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-black text-amber-900 uppercase">Mois clôturé</h3>
+                            <p className="font-bold text-amber-700 uppercase text-sm">🔒 Consultation uniquement - Modification impossible</p>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+
             {/* Stats section removed as per request for Chef cleanup */}
 
-            <div className="bg-white p-8 rounded-[32px] border-3 border-slate-900 shadow-2xl grid grid-cols-1 md:grid-cols-2 gap-8 sticky top-4 z-40">
+            {/* Toolbar (Sticky) */}
+            <div className="bg-white/95 backdrop-blur-md p-6 border-b-4 border-slate-900 shadow-xl grid grid-cols-1 md:grid-cols-2 gap-6 sticky top-0 z-50 mx-[-24px] px-8">
                 <div className="relative">
                     <label className="text-sm font-black text-slate-500 uppercase mb-3 block">Date :</label>
                     <input
@@ -203,6 +263,7 @@ export default function ChefPointagePage() {
                         value={filterDate}
                         onChange={(e) => setFilterDate(e.target.value)}
                         className="w-full px-8 py-6 bg-slate-50 border-3 border-slate-200 rounded-2xl text-2xl font-black text-slate-900 outline-none focus:border-blue-700"
+                        data-testid="date-picker"
                     />
                 </div>
                 <div className="relative">
@@ -215,6 +276,7 @@ export default function ChefPointagePage() {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-20 pr-8 py-6 bg-slate-50 border-3 border-slate-200 rounded-2xl text-2xl font-black outline-none focus:border-blue-700"
+                            data-testid="search-input"
                         />
                     </div>
                 </div>
@@ -289,30 +351,35 @@ export default function ChefPointagePage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <div className="flex justify-center gap-1.5">
-                                                {['PRESENT', 'ABSENT', 'CONGE', 'MALADIE', 'FERIE'].map((s) => (
+                                            <div className={`flex justify-center gap-1.5 min-w-[500px] ${isLocked ? 'pointer-events-none' : ''}`}>
+                                                {['PRESENT', 'ABSENT', 'FERIE', 'CONGE', 'MALADIE'].map((s) => (
                                                     <button
                                                         key={s}
                                                         onClick={() => handleSheetChange(emp.id, 'statut', s)}
-                                                        className={`btn-pill border-2 text-[9px] font-black uppercase tracking-tighter ${getStatusStyle(s, entry.statut)}`}
+                                                        disabled={isLocked}
+                                                        className={`btn-pill border-2 text-[9px] font-black uppercase tracking-tighter ${getStatusStyle(s, entry.statut)} ${isLocked && s !== entry.statut ? 'opacity-30' : ''}`}
+                                                        data-testid={`status-btn-${s.toLowerCase()}-${emp.id}`}
+                                                        aria-label={statutLabels[s]}
+                                                        title={statutLabels[s]}
                                                     >
                                                         {configs[s].icon}
-                                                        {s}
+                                                        {statutLabels[s]}
                                                     </button>
                                                 ))}
                                             </div>
                                         </td>
                                         <td className="px-6 py-6 text-center">
-                                            <div className={`flex items-center justify-center gap-2 ${isAbsent ? 'opacity-30 pointer-events-none' : ''}`}>
-                                                <button onClick={() => handleSheetChange(emp.id, 'heuresSupp', Math.max(0, (entry.heuresSupp || 0) - 0.5))} className="w-8 h-8 rounded-full border border-slate-200 bg-white text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-all shadow-sm font-bold flex items-center justify-center">-</button>
+                                            <div className={`flex items-center justify-center gap-2 ${isAbsent || isLocked ? 'opacity-30 pointer-events-none' : ''}`}>
+                                                <button disabled={isLocked} onClick={() => handleSheetChange(emp.id, 'heuresSupp', Math.max(0, (entry.heuresSupp || 0) - 0.5))} className="w-8 h-8 rounded-full border border-slate-200 bg-white text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-all shadow-sm font-bold flex items-center justify-center">-</button>
                                                 <span className="text-lg font-black w-8 text-slate-900 font-mono-numbers">{entry.heuresSupp || 0}</span>
-                                                <button onClick={() => handleSheetChange(emp.id, 'heuresSupp', (entry.heuresSupp || 0) + 0.5)} className="w-8 h-8 rounded-full border border-slate-200 bg-white text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-all shadow-sm font-bold flex items-center justify-center">+</button>
+                                                <button disabled={isLocked} onClick={() => handleSheetChange(emp.id, 'heuresSupp', (entry.heuresSupp || 0) + 0.5)} className="w-8 h-8 rounded-full border border-slate-200 bg-white text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-all shadow-sm font-bold flex items-center justify-center">+</button>
                                             </div>
                                         </td>
                                         <td className="px-6 py-6 text-center">
-                                            <div className="relative group/input">
+                                            <div className={`relative group/input ${isLocked ? 'opacity-30 pointer-events-none' : ''}`}>
                                                 <input
                                                     type="number"
+                                                    disabled={isLocked}
                                                     value={entry.avance || ''}
                                                     onChange={(e) => handleSheetChange(emp.id, 'avance', parseFloat(e.target.value) || 0)}
                                                     className="w-24 text-center text-lg font-black bg-slate-50 border border-slate-200 rounded-xl py-2 focus:border-emerald-500 focus:bg-white outline-none transition-all font-mono-numbers"
@@ -324,10 +391,11 @@ export default function ChefPointagePage() {
                                         <td className="px-8 py-6">
                                             <input
                                                 type="text"
+                                                disabled={isLocked}
                                                 value={entry.notes || ''}
                                                 onChange={(e) => handleSheetChange(emp.id, 'notes', e.target.value)}
-                                                className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-medium text-slate-600 focus:border-blue-300 focus:bg-white outline-none transition-all"
-                                                placeholder="Observation..."
+                                                className={`w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-medium text-slate-600 focus:border-blue-300 focus:bg-white outline-none transition-all ${isLocked ? 'opacity-50 pointer-events-none' : ''}`}
+                                                placeholder={isLocked ? "Verrouillé" : "Observation..."}
                                             />
                                         </td>
                                         <td className="px-6 py-6 text-center">

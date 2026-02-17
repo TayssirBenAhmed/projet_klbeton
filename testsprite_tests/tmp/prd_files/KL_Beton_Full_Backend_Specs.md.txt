@@ -1,0 +1,50 @@
+Full Backend Specification: KL Beton System
+1. Project Objective
+KL Beton is an automated payroll and attendance system for the construction industry. The backend manages a workforce based on a 26-day work month logic, handling daily attendance, overtime, and a two-step approval process for financial advances.
+2. Data Models (PostgreSQL / Prisma)
+The backend must maintain integrity across these core entities:
+User: Authentication credentials (Email, Hashed Password) and Role (ADMIN, CHEF, EMPLOYE).
+Employee: Professional data (Salary, Position, Hire Date, Sick/Annual Leave Balances). Linked 1:1 with User.
+Attendance: Daily logs (Date, Status, Overtime Hours). Statuses: PRESENT, ABSENT, CONGE, MALADIE, FERIE.
+Advance (Avance sous-salaire): Financial records (Amount, Date, Status). Statuses: PENDING, APPROVED, REJECTED.
+3. Business Logic & Calculations (The "Brain")
+All API responses for payroll or statistics must follow these strict formulas:
+A. Payroll Formulas
+Daily Rate = Base Salary / 26.
+Hourly Rate = (Daily Rate / 8).
+Overtime Pay = Hours * Hourly Rate * 1.25 (25% Premium).
+Gross Earnings = (Worked Days * Daily Rate) + (Paid Holidays/Leave * Daily Rate) + Overtime Pay.
+B. Advance & Debt Logic
+Approved Advances: Only advances with status: APPROVED are deducted from the current month's salary.
+Net Salary Calculation: Gross Earnings - Total Approved Advances.
+Zero-Floor Rule: If Net Salary < 0, the API must return net_salary: 0.000.
+Debt Calculation: If Net Salary < 0, the remainder must be returned as debt_to_recover.
+C. Leave Management
+Automatic Decrement: When an attendance record with status CONGE or MALADIE is created and validated, the corresponding balance in the Employee table must decrease by 1.
+4. API Endpoints Requirements
+Auth API (/api/auth/*)
+Must inject role, nom, and prenom into the JWT and Session object.
+Must prevent login if credentials do not match.
+Attendance API (/api/pointages)
+POST: Only accessible by CHEF. Must allow bulk insertion for a specific date.
+GET: Must support filtering by date (YYYY-MM-DD) and employeeId.
+PATCH: Allow the CHEF to update historical records for corrections.
+Finance API (/api/finances)
+GET: Retrieve advances filtered by status (e.g., ?status=PENDING).
+PATCH: /api/finances/[id] - Only ADMIN can change status to APPROVED or REJECTED.
+Statistics API (/api/admin/stats)
+Must support date range filtering (startDate to endDate).
+Must aggregate data: Total Presences, Total Overtime, Total Approved Advances.
+Must provide data for Chart.js: Overtime hours grouped by Employee name.
+5. Security & Access Control (RBAC)
+Middleware Enforcement:
+Routes starting with /api/admin/ MUST return 403 Forbidden for non-admins.
+Routes starting with /api/chef/ MUST return 403 Forbidden for EMPLOYE role.
+Data Isolation: Employees must only be able to fetch their own data, while Admins/Chefs can fetch collective data.
+6. Expected Edge Case Handling
+Duplicate Attendance: Prevent creating two attendance records for the same employee on the same date.
+Date Constraints: Ensure statistics don't use Date.now() but rather the date requested by the user.
+Negative Values: Ensure the system handles 
+0
+0
+ worked days gracefully without crashing the division logic.
