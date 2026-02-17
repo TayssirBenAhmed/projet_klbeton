@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../../lib/infrastructure/auth/authOptions';
-import prisma from '../../../../lib/prisma';
-import { getClockInStatus } from '../../../../lib/services/autoClockService';
-import { calculerRecapMensuel } from '../../../../lib/use-cases/pointage/calculerRecapMensuel';
+import { authOptions } from '@/lib/infrastructure/auth/authOptions';
+import prisma from '@/lib/prisma';
+import { getClockInStatus } from '@/lib/services/autoClockService';
+import { calculerRecapMensuel } from '@/lib/use-cases/pointage/calculerRecapMensuel';
 
 /**
  * GET /api/employee/dashboard
