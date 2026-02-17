@@ -2,11 +2,20 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { Calendar, UserCircle, LogOut, ShieldCheck, User as UserIcon, ChevronDown } from 'lucide-react';
 
 import { useDate } from '@/context/DateContext';
 
 export default function Header() {
+    return (
+        <Suspense fallback={null}>
+            <HeaderContent />
+        </Suspense>
+    );
+}
+
+function HeaderContent() {
     const pathname = usePathname();
     const router = useRouter();
     const searchParams = useSearchParams();

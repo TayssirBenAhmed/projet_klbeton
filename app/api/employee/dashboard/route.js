@@ -5,6 +5,8 @@ import prisma from '@/lib/prisma';
 import { getClockInStatus } from '@/lib/services/autoClockService';
 import { calculerRecapMensuel } from '@/lib/use-cases/pointage/calculerRecapMensuel';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/employee/dashboard
  * Aggregates all data for the employee dashboard

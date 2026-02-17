@@ -1,11 +1,19 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 const DateContext = createContext();
 
 export function DateProvider({ children }) {
+    return (
+        <Suspense fallback={null}>
+            <DateProviderContent>{children}</DateProviderContent>
+        </Suspense>
+    );
+}
+
+function DateProviderContent({ children }) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();

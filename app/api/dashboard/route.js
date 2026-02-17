@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/infrastructure/auth/authOptions';
 import prisma from '@/lib/prisma';
 import { calculerJoursOuvrables } from '@/lib/services/calculJoursService';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/dashboard
  * Récupère les statistiques du dashboard
@@ -176,8 +178,8 @@ export async function GET(request) {
             absencesJour,
             presencesJour,
             isJournalValide: isJournalValide,
-            moisSelectionne,
-            anneeSelectionnee
+            month,
+            year
         });
     } catch (error) {
         console.error('Erreur GET /api/dashboard:', error);

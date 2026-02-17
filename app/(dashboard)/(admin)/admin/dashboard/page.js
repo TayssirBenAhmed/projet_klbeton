@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Doughnut, Bar, Line } from 'react-chartjs-2';
 import {
@@ -46,7 +46,15 @@ ChartJS.register(
     Legend
 );
 
-export default function DashboardPage() {
+export default function AdminDashboardPage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-[400px]"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>}>
+            <AdminDashboardContent />
+        </Suspense>
+    );
+}
+
+function AdminDashboardContent() {
     const { date } = useDate();
     const router = useRouter();
 

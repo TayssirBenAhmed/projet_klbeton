@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/infrastructure/auth/authOptions';
 import prisma from '@/lib/prisma';
 import { calculerJoursOuvrables, calculerJoursOuvrablesPartiel } from '@/lib/services/calculJoursService';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
     try {
         const session = await getServerSession(authOptions);
