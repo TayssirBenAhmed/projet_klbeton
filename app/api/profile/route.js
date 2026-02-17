@@ -5,6 +5,8 @@ import { hash, compare } from 'bcryptjs';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/lib/infrastructure/auth/authOptions';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * PATCH /api/profile
  * Mise à jour du mot de passe ou de la double authentification

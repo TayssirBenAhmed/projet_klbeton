@@ -4,6 +4,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/infrastructure/auth/authOptions';
 import { obtenirEmployes, gererEmploye } from '@/lib/use-cases/employe/gererEmploye';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/employes
  * Récupère la liste des employés

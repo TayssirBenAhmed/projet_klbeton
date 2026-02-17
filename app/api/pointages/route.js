@@ -4,6 +4,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/infrastructure/auth/authOptions';
 import { obtenirPointages, creerPointage, supprimerPointage } from '@/lib/use-cases/pointage/creerPointage';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/pointages
  * Récupère la liste des pointages avec filtres

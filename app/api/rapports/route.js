@@ -4,6 +4,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/infrastructure/auth/authOptions';
 import { calculerRecapMensuel, calculerRecapMensuelTous } from '@/lib/use-cases/pointage/calculerRecapMensuel';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/rapports
  * Génère un rapport récapitulatif

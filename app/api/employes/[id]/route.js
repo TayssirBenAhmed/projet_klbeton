@@ -1,8 +1,10 @@
 // Rebuild-Tag: 2026-02-07T13:55:00Z - STABLE_RELATIVE
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../../lib/infrastructure/auth/authOptions';
-import { obtenirEmploye, gererEmploye, supprimerEmploye } from '../../../../lib/use-cases/employe/gererEmploye';
+import { authOptions } from '@/lib/infrastructure/auth/authOptions';
+import { obtenirEmploye, gererEmploye, supprimerEmploye } from '@/lib/use-cases/employe/gererEmploye';
+
+export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/employes/[id]
@@ -24,7 +26,7 @@ export async function GET(request, { params }) {
         }
 
         // Calculer les détails du salaire pour le mois en cours
-        const { calculerRecapMensuel } = await import('../../../../lib/use-cases/pointage/calculerRecapMensuel');
+        const { calculerRecapMensuel } = await import('@/lib/use-cases/pointage/calculerRecapMensuel');
         const mois = new Date().getMonth() + 1;
         const annee = new Date().getFullYear();
 

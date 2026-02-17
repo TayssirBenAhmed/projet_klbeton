@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/infrastructure/auth/authOptions';
 import prisma from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/avances/[id]/approve
  * Approves or Rejects an advance
