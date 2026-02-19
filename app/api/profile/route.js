@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { hash, compare } from 'bcryptjs';
 import prisma from '@/lib/prisma';
-import { authOptions } from '@/lib/infrastructure/auth/authOptions';
+import { authOptions } from '@/app/api/auth/[...nextauth]/auth-options';
 
 export const dynamic = 'force-dynamic';
 

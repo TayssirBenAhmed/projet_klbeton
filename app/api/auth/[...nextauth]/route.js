@@ -1,6 +1,6 @@
 // Rebuild-Tag: 2026-02-07T13:55:00Z - STABLE_RELATIVE
 import NextAuth from 'next-auth';
-import { authOptions } from '@/lib/infrastructure/auth/authOptions';
+import { authOptions } from './auth-options';
 
 export const dynamic = 'force-dynamic';
 

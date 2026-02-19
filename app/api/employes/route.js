@@ -1,7 +1,7 @@
 // Rebuild-Tag: 2026-02-07T13:55:00Z - STABLE_RELATIVE
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/infrastructure/auth/authOptions';
+import { authOptions } from '@/app/api/auth/[...nextauth]/auth-options';
 import { obtenirEmployes, gererEmploye } from '@/lib/use-cases/employe/gererEmploye';
 
 export const dynamic = 'force-dynamic';
