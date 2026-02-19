@@ -22,8 +22,11 @@ import {
     Clock,
     ArrowRight,
     CheckCircle2,
-    Download
+    Download,
+    Trash2,
+    AlertTriangle
 } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 // ---- Fuzzy Search utility ----
 function fuzzyMatch(text, query) {
@@ -63,9 +66,13 @@ function subsequenceMatch(text, query) {
 }
 
 export default function EmployesPage() {
+    const { t } = useLanguage();
     const [employes, setEmployes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
     const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -197,7 +204,7 @@ export default function EmployesPage() {
         return (
             <div className="flex flex-col items-center justify-center h-[60vh]">
                 <div className="w-16 h-16 border-8 border-blue-600/20 border-t-blue-600 rounded-full animate-spin" />
-                <p className="mt-6 text-slate-900 font-black uppercase tracking-widest text-lg">CHARGEMENT...</p>
+                <p className="mt-6 text-slate-900 font-black uppercase tracking-widest text-lg">{t('loading')}</p>
             </div>
         );
     }
@@ -208,18 +215,29 @@ export default function EmployesPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pb-8 border-b-4 border-slate-900">
                 <div>
                     <h1 className="text-5xl font-black text-slate-900 tracking-tight flex items-center gap-4 uppercase">
-                        GESTION <span className="text-blue-600">EFFECTIFS</span>
+                        {t('employeeManagement')}
                     </h1>
                     <p className="text-slate-400 font-bold mt-2 uppercase tracking-[0.3em] text-xs">
-                        {filteredEmployes.length} collaborateur{filteredEmployes.length > 1 ? 's' : ''} trouvé{filteredEmployes.length > 1 ? 's' : ''}
+                        {filteredEmployes.length} {filteredEmployes.length > 1 ? t('employees').toLowerCase() : t('employee').toLowerCase()} {t('found') || 'trouvé'}
                     </p>
                 </div>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="bg-blue-600 text-white px-8 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
-                >
-                    + AJOUTER UN EMPLOYÉ
-                </button>
+                <div className="flex items-center gap-4">
+                    {/* SENIOR-FRIENDLY: Massive Delete All button */}
+                    <button
+                        onClick={() => setShowDeleteAllModal(true)}
+                        className="bg-red-600 text-white px-8 py-5 rounded-2xl font-black text-lg uppercase tracking-widest shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none hover:bg-red-700 transition-all flex items-center gap-3"
+                    >
+                        <Trash2 className="w-6 h-6" />
+                        {t('deleteAllEmployees')}
+                    </button>
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className="bg-blue-600 text-white px-8 py-5 rounded-2xl font-black text-lg uppercase tracking-widest shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-3"
+                    >
+                        <Plus className="w-6 h-6" />
+                        + {t('addEmployee')}
+                    </button>
+                </div>
             </div>
 
             {/* Search + View Toggle */}
@@ -229,7 +247,7 @@ export default function EmployesPage() {
                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 w-6 h-6" />
                         <input
                             type="text"
-                            placeholder="Recherche intelligente (tolérant aux fautes)..."
+                            placeholder={t('searchPlaceholder')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-16 pr-8 py-5 bg-slate-50 border-3 border-transparent rounded-2xl text-xl font-bold placeholder:text-slate-300 focus:border-blue-600 outline-none transition-all"
@@ -239,14 +257,14 @@ export default function EmployesPage() {
                         <button
                             onClick={() => setViewMode('grid')}
                             className={`p-3 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-700'}`}
-                            title="Vue Grille"
+                            title={t('gridView')}
                         >
                             <LayoutGrid className="w-5 h-5" />
                         </button>
                         <button
                             onClick={() => setViewMode('table')}
                             className={`p-3 rounded-xl transition-all ${viewMode === 'table' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-700'}`}
-                            title="Vue Tableau"
+                            title={t('tableView')}
                         >
                             <LayoutList className="w-5 h-5" />
                         </button>
@@ -260,7 +278,7 @@ export default function EmployesPage() {
                     {filteredEmployes.length === 0 ? (
                         <div className="col-span-full text-center py-24 bg-white rounded-[40px] border-4 border-slate-900 border-dashed">
                             <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                            <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">Aucun collaborateur trouvé</p>
+                            <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">{t('noEmployeesFound')}</p>
                         </div>
                     ) : (
                         filteredEmployes.map((employe, idx) => (
@@ -283,7 +301,7 @@ export default function EmployesPage() {
                                                 {employe.nom} {employe.prenom}
                                             </h3>
                                             <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mt-2">
-                                                {employe.poste} • MAT: {employe.employeeId || '---'}
+                                                {employe.poste} • {t('matricule')}: {employe.employeeId || '---'}
                                             </p>
                                         </div>
                                     </div>
@@ -296,7 +314,7 @@ export default function EmployesPage() {
                                             </p>
                                         </div>
                                         <div className="p-5 bg-slate-50 rounded-2xl border-2 border-slate-100 items-center justify-center flex flex-col">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">H. Supp</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('overtimeShort')}</p>
                                             <p className="text-2xl font-black text-slate-900">
                                                 +{employe.statsMensuelles?.heuresSupp || 0} <span className="text-xs uppercase">H</span>
                                             </p>
@@ -306,7 +324,7 @@ export default function EmployesPage() {
                                     <div className="flex items-center justify-between pt-6 border-t-2 border-slate-50">
                                         <div className="flex items-center gap-2">
                                             <div className={`w-3 h-3 rounded-full ${employe.statut === 'ACTIF' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                                            <span className="text-[10px] font-black uppercase text-slate-400">{employe.statut}</span>
+                                            <span className="text-[10px] font-black uppercase text-slate-400">{employe.statut === 'ACTIF' ? t('active') : t('inactive')}</span>
                                         </div>
                                         <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-900 group-hover:bg-blue-600 group-hover:text-white transition-all">
                                             <ChevronRight className="w-6 h-6" />
@@ -326,20 +344,20 @@ export default function EmployesPage() {
                         <table className="min-w-full divide-y-4 divide-slate-900">
                             <thead className="bg-slate-900 text-white">
                                 <tr>
-                                    <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em]">Employé</th>
-                                    <th className="px-6 py-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">Poste</th>
-                                    <th className="px-6 py-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">Matricule</th>
-                                    <th className="px-6 py-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">Présence</th>
-                                    <th className="px-6 py-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">H. Supp</th>
-                                    <th className="px-6 py-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">Statut</th>
-                                    <th className="px-6 py-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">Action</th>
+                                    <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em]">{t('employee')}</th>
+                                    <th className="px-6 py-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">{t('position')}</th>
+                                    <th className="px-6 py-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">{t('matricule')}</th>
+                                    <th className="px-6 py-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">{t('presence')}</th>
+                                    <th className="px-6 py-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">{t('overtimeShort')}</th>
+                                    <th className="px-6 py-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">{t('status')}</th>
+                                    <th className="px-6 py-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">{t('actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
                                 {filteredEmployes.length === 0 ? (
                                     <tr>
                                         <td colSpan={7} className="text-center py-16 text-slate-400 font-black uppercase text-xs">
-                                            Aucun collaborateur trouvé
+                                            {t('noEmployeesFound')}
                                         </td>
                                     </tr>
                                 ) : (
@@ -372,7 +390,7 @@ export default function EmployesPage() {
                                             <td className="px-6 py-5 text-center">
                                                 <div className="flex items-center justify-center gap-2">
                                                     <div className={`w-2.5 h-2.5 rounded-full ${emp.statut === 'ACTIF' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                                                    <span className="text-[10px] font-black uppercase text-slate-400">{emp.statut}</span>
+                                                    <span className="text-[10px] font-black uppercase text-slate-400">{emp.statut === 'ACTIF' ? t('active') : t('inactive')}</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5 text-center">
@@ -556,7 +574,7 @@ export default function EmployesPage() {
                             <div className="p-10 border-b-4 border-slate-900 flex flex-col bg-white text-slate-900">
                                 <div className="flex items-center justify-between">
                                     <h3 className="text-4xl font-black uppercase tracking-tighter">
-                                        {isEditing ? 'Modifier' : 'Nouveau'} <span className="text-blue-600">Collaborateur</span>
+                                        {isEditing ? t('editEmployee') : t('create')} <span className="text-blue-600">{t('employee')}</span>
                                     </h3>
                                     <button onClick={() => { setShowModal(false); setIsEditing(false); setError(null); }} className="w-12 h-12 flex items-center justify-center bg-slate-100 rounded-2xl hover:bg-rose-600 hover:text-white transition-all">
                                         <X className="w-6 h-6" />
@@ -579,21 +597,21 @@ export default function EmployesPage() {
                                     {/* Infos de Base */}
                                     <div className="col-span-full mb-4">
                                         <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3">
-                                            <div className="w-8 h-px bg-slate-200" /> Information d'identité
+                                            <div className="w-8 h-px bg-slate-200" /> {t('personalInfo')}
                                         </h4>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">Nom de famille</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">{t('lastName')}</label>
                                         <input type="text" value={formData.nom} onChange={(e) => setFormData({ ...formData, nom: e.target.value.toUpperCase() })}
                                             className="w-full px-6 py-4 bg-slate-50 border-3 border-transparent rounded-2xl text-lg font-bold focus:border-blue-600 outline-none transition-all" required />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">Prénom</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">{t('firstName')}</label>
                                         <input type="text" value={formData.prenom} onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
                                             className="w-full px-6 py-4 bg-slate-50 border-3 border-transparent rounded-2xl text-lg font-bold focus:border-blue-600 outline-none transition-all" required />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">Matricule (Interne)</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">{t('matricule')}</label>
                                         <input type="text" value={formData.employeeId} placeholder="Ex: KL-042" onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
                                             className="w-full px-6 py-4 bg-slate-100 border-3 border-transparent rounded-2xl text-lg font-bold focus:border-blue-600 outline-none transition-all" required />
                                     </div>
@@ -601,21 +619,21 @@ export default function EmployesPage() {
                                     {/* Contrat */}
                                     <div className="col-span-full mt-4 mb-4">
                                         <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3">
-                                            <div className="w-8 h-px bg-slate-200" /> Contrat & Rémunération
+                                            <div className="w-8 h-px bg-slate-200" /> {t('professionalInfo')}
                                         </h4>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">Poste occupé</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">{t('position')}</label>
                                         <input type="text" value={formData.poste} onChange={(e) => setFormData({ ...formData, poste: e.target.value })}
                                             className="w-full px-6 py-4 bg-slate-50 border-3 border-transparent rounded-2xl text-lg font-bold focus:border-blue-600 outline-none transition-all" required />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">Date d'embauche</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">{t('hireDate')}</label>
                                         <input type="date" value={formData.dateEmbauche} onChange={(e) => setFormData({ ...formData, dateEmbauche: e.target.value })}
                                             className="w-full px-6 py-4 bg-slate-50 border-3 border-transparent rounded-2xl text-lg font-bold focus:border-blue-600 outline-none transition-all" required />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">Salaire de Base (TND)</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">{t('monthlySalary')} (TND)</label>
                                         <input type="number" value={formData.salaireBase || ''} onChange={(e) => setFormData({ ...formData, salaireBase: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                                             className="w-full px-6 py-4 bg-emerald-50 border-3 border-transparent rounded-2xl text-xl font-black text-emerald-700 focus:border-emerald-600 outline-none transition-all" required />
                                     </div>
@@ -623,16 +641,16 @@ export default function EmployesPage() {
                                     {/* Soldes initiaux */}
                                     <div className="col-span-full mt-4 mb-4">
                                         <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3">
-                                            <div className="w-8 h-px bg-slate-200" /> Soldes de Congés & Maladie
+                                            <div className="w-8 h-px bg-slate-200" /> {t('vacationBalance')} & {t('sickBalance')}
                                         </h4>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">Solde Congés (Jours)</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">{t('vacationBalance')} ({t('days')})</label>
                                         <input type="number" step="0.5" value={formData.soldeConges ?? ''} onChange={(e) => setFormData({ ...formData, soldeConges: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                                             className="w-full px-6 py-4 bg-blue-50 border-3 border-transparent rounded-2xl text-lg font-bold focus:border-blue-600 outline-none transition-all" />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">Solde Maladie (Jours)</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">{t('sickBalance')} ({t('days')})</label>
                                         <input type="number" step="0.5" value={formData.soldeMaladie ?? ''} onChange={(e) => setFormData({ ...formData, soldeMaladie: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                                             className="w-full px-6 py-4 bg-rose-50 border-3 border-transparent rounded-2xl text-lg font-bold focus:border-rose-600 outline-none transition-all" />
                                     </div>
@@ -640,11 +658,11 @@ export default function EmployesPage() {
                                     {/* Accès */}
                                     <div className="col-span-full mt-4 mb-4">
                                         <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3">
-                                            <div className="w-8 h-px bg-slate-200" /> Accès Plateforme
+                                            <div className="w-8 h-px bg-slate-200" /> {t('accessPlatform')}
                                         </h4>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">Rôle</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">{t('role')}</label>
                                         <select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                                             className="w-full px-6 py-4 bg-slate-50 border-3 border-transparent rounded-2xl text-lg font-bold focus:border-blue-600 outline-none transition-all">
                                             <option value="EMPLOYE">EMPLOYÉ</option>
@@ -653,12 +671,12 @@ export default function EmployesPage() {
                                         </select>
                                     </div>
                                     <div className="col-span-full md:col-span-1 space-y-2">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">Email Professionnel</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">{t('email')}</label>
                                         <input type="email" value={formData.email} placeholder="nom.prenom@klbeton.tn" onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                             className="w-full px-6 py-4 bg-slate-50 border-3 border-transparent rounded-2xl text-lg font-bold focus:border-blue-600 outline-none transition-all" />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">Mot de passe</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2">{t('password')}</label>
                                         <input type="password" value={formData.password} placeholder="********" onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                             className="w-full px-6 py-4 bg-slate-50 border-3 border-transparent rounded-2xl text-lg font-bold focus:border-blue-600 outline-none transition-all" />
                                     </div>
@@ -666,17 +684,123 @@ export default function EmployesPage() {
 
                                 <div className="flex gap-6 mt-12">
                                     <button type="button" onClick={() => { setShowModal(false); setIsEditing(false); }} className="flex-1 py-5 text-sm font-black uppercase text-slate-400 hover:text-slate-900 transition-all">
-                                        Annuler
+                                        {t('cancelAction')}
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={submitting}
                                         className={`flex-[2] bg-slate-900 text-white py-5 rounded-2xl font-black uppercase text-lg tracking-widest shadow-[6px_6px_0px_0px_rgba(37,99,235,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
-                                        {submitting ? 'Traitement en cours...' : (isEditing ? 'Enregistrer les modifications' : 'Créer le profil')}
+                                        {submitting ? t('processing') : (isEditing ? t('saveChanges') : t('createProfile'))}
                                     </button>
                                 </div>
                             </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* ===== DELETE ALL CONFIRMATION MODAL (SENIOR-FRIENDLY) ===== */}
+            <AnimatePresence>
+                {showDeleteAllModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"
+                            onClick={() => !isDeleting && setShowDeleteAllModal(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative bg-white rounded-[40px] p-10 max-w-2xl w-full shadow-2xl border-4 border-red-600"
+                        >
+                            {/* Warning Header */}
+                            <div className="text-center mb-8">
+                                <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <AlertTriangle className="w-12 h-12 text-red-600" />
+                                </div>
+                                <h2 className="text-4xl font-black text-red-600 uppercase tracking-tight mb-4">
+                                    {t('deleteAllConfirmTitle')}
+                                </h2>
+                                <p className="text-xl text-slate-600 font-bold leading-relaxed">
+                                    {t('deleteAllConfirmMessage')}
+                                </p>
+                            </div>
+
+                            {/* Type to Confirm */}
+                            <div className="bg-red-50 rounded-2xl p-6 mb-8 border-2 border-red-200">
+                                <label className="block text-sm font-black text-red-700 uppercase tracking-widest mb-4">
+                                    {t('typeToConfirm')}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={deleteConfirmText}
+                                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                                    placeholder="SUPPRIMER"
+                                    disabled={isDeleting}
+                                    className="w-full px-6 py-5 bg-white border-3 border-red-300 rounded-2xl text-2xl font-black text-red-700 uppercase tracking-widest placeholder:text-red-300 focus:border-red-600 outline-none transition-all text-center"
+                                />
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => {
+                                        setShowDeleteAllModal(false);
+                                        setDeleteConfirmText('');
+                                    }}
+                                    disabled={isDeleting}
+                                    className="flex-1 py-5 rounded-2xl font-black text-lg uppercase tracking-widest bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all disabled:opacity-50"
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        if (deleteConfirmText !== 'SUPPRIMER') {
+                                            alert('Vous devez taper exactement "SUPPRIMER" pour confirmer');
+                                            return;
+                                        }
+                                        setIsDeleting(true);
+                                        try {
+                                            const res = await fetch('/api/employes/delete-all', {
+                                                method: 'DELETE',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ confirmation: 'SUPPRIMER' })
+                                            });
+                                            const result = await res.json();
+                                            if (res.ok) {
+                                                alert(`${t('deleteSuccess')}\n\nEmployés: ${result.deleted.employes}\nPointages: ${result.deleted.pointages}\nAvances: ${result.deleted.avances}\nUtilisateurs: ${result.deleted.users}`);
+                                                setShowDeleteAllModal(false);
+                                                setDeleteConfirmText('');
+                                                fetchEmployes();
+                                            } else {
+                                                alert(result.error || 'Erreur lors de la suppression');
+                                            }
+                                        } catch (error) {
+                                            alert('Erreur de connexion');
+                                        } finally {
+                                            setIsDeleting(false);
+                                        }
+                                    }}
+                                    disabled={deleteConfirmText !== 'SUPPRIMER' || isDeleting}
+                                    className="flex-[2] bg-red-600 text-white py-5 rounded-2xl font-black text-lg uppercase tracking-widest shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none hover:bg-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                                >
+                                    {isDeleting ? (
+                                        <>
+                                            <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                                            {t('deleting')}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Trash2 className="w-6 h-6" />
+                                            {t('yesDeleteAll')}
+                                        </>
+                                    )}
+                                </button>
+                            </div>
                         </motion.div>
                     </div>
                 )}

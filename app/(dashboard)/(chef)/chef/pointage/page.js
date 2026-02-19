@@ -19,7 +19,8 @@ import {
     Save,
     RotateCcw,
     X,
-    Wallet
+    Wallet,
+    Lock
 } from 'lucide-react';
 
 export default function ChefPointagePage() {
@@ -114,6 +115,7 @@ export default function ChefPointagePage() {
                     entry.joursTravailles = isDimanche ? 0 : 1;
                 } else if (value === 'ABSENT' || value === 'MALADIE') {
                     entry.joursTravailles = 0;
+                    // CRITICAL: Reset overtime hours to 0 for MALADIE status
                     entry.heuresSupp = 0;
                 } else if (value === 'CONGE' || value === 'FERIE') {
                     entry.joursTravailles = isDimanche ? 0 : 1;
@@ -210,7 +212,7 @@ export default function ChefPointagePage() {
                 )}
             </AnimatePresence>
 
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b-4 border-slate-900 pb-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b-2 border-slate-200 pb-8">
                 <div>
                     <h1 className="text-5xl font-black text-slate-900 tracking-tight flex items-center gap-4 uppercase">
                         FEUILLE DE <span className="text-blue-600">PRÉSENCE</span>
@@ -255,7 +257,7 @@ export default function ChefPointagePage() {
             {/* Stats section removed as per request for Chef cleanup */}
 
             {/* Toolbar (Sticky) */}
-            <div className="bg-white/95 backdrop-blur-md p-6 border-b-4 border-slate-900 shadow-xl grid grid-cols-1 md:grid-cols-2 gap-6 sticky top-0 z-50 mx-[-24px] px-8">
+            <div className="bg-white/95 backdrop-blur-md p-6 border-b-2 border-slate-200 shadow-xl grid grid-cols-1 md:grid-cols-2 gap-6 sticky top-0 z-50 mx-[-24px] px-8 rounded-2xl">
                 <div className="relative">
                     <label className="text-sm font-black text-slate-500 uppercase mb-3 block">Date :</label>
                     <input
@@ -282,49 +284,60 @@ export default function ChefPointagePage() {
                 </div>
             </div>
 
-            <div className="bg-white rounded-[40px] border-4 border-slate-900 shadow-2xl overflow-hidden">
+            <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y-4 divide-slate-900">
-                        <thead className="bg-slate-900 text-white">
+                    <table className="min-w-full divide-y-2 divide-slate-200">
+                        <thead className="bg-slate-800 text-white">
                             <tr>
-                                <th className="px-10 py-8 text-left text-sm font-black uppercase">Employé</th>
-                                <th className="px-8 py-8 text-center text-sm font-black uppercase">Statut</th>
-                                <th className="px-6 py-8 text-center text-sm font-black uppercase w-40">Heures Supp</th>
-                                <th className="px-6 py-8 text-center text-sm font-black uppercase w-32">Avance (DT)</th>
-                                <th className="px-8 py-8 text-left text-sm font-black uppercase">Note/Observation</th>
-                                <th className="px-6 py-8 text-center text-sm font-black uppercase">État</th>
+                                <th className="px-10 py-6 text-left text-lg font-black uppercase">Employé</th>
+                                <th className="px-4 py-6 text-center text-lg font-black uppercase w-[750px]">Statut</th>
+                                <th className="px-6 py-6 text-center text-lg font-black uppercase w-48">Heures Sup</th>
+                                <th className="px-6 py-6 text-center text-lg font-black uppercase w-40">Avance (DT)</th>
+                                <th className="px-8 py-6 text-left text-lg font-black uppercase">Note</th>
+                                <th className="px-6 py-6 text-center text-lg font-black uppercase w-32">État</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-200">
+                        <tbody className="divide-y-4 divide-slate-200">
                             {filteredEmployes.map((emp) => {
                                 const entry = sheetEntries[emp.id] || {};
-                                const isAbsent = entry.statut === 'ABSENT' || entry.statut === 'MALADIE';
+                                const isAbsent = entry.statut === 'ABSENT' || entry.statut === 'MALADIE' || entry.statut === 'CONGE';
 
+                                // SENIOR-FRIENDLY: Large, easily clickable status buttons
                                 const configs = {
                                     PRESENT: {
-                                        active: 'bg-emerald-600 text-white border-emerald-700 status-glow-emerald',
-                                        inactive: 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100',
-                                        icon: <CheckCircle2 className="w-3.5 h-3.5" />
+                                        active: 'bg-emerald-500 text-white border-emerald-600 shadow-lg shadow-emerald-500/30',
+                                        inactive: 'bg-slate-100 text-slate-400 border-slate-200 hover:bg-emerald-50 hover:text-emerald-600',
+                                        icon: <CheckCircle2 className="w-8 h-8" />,
+                                        label: 'PRÉSENT',
+                                        color: 'emerald'
                                     },
                                     ABSENT: {
-                                        active: 'bg-rose-600 text-white border-rose-700 status-glow-rose',
-                                        inactive: 'bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100',
-                                        icon: <X className="w-3.5 h-3.5" />
-                                    },
-                                    CONGE: {
-                                        active: 'bg-amber-500 text-white border-amber-600 status-glow-amber',
-                                        inactive: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100',
-                                        icon: <CalendarIcon className="w-3.5 h-3.5" />
-                                    },
-                                    MALADIE: {
-                                        active: 'bg-orange-600 text-white border-orange-700 status-glow-amber',
-                                        inactive: 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100',
-                                        icon: <AlertCircle className="w-3.5 h-3.5" />
+                                        active: 'bg-rose-500 text-white border-rose-600 shadow-lg shadow-rose-500/30',
+                                        inactive: 'bg-slate-100 text-slate-400 border-slate-200 hover:bg-rose-50 hover:text-rose-600',
+                                        icon: <X className="w-8 h-8" />,
+                                        label: 'ABSENT',
+                                        color: 'rose'
                                     },
                                     FERIE: {
-                                        active: 'bg-blue-600 text-white border-blue-700 status-glow-blue',
-                                        inactive: 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100',
-                                        icon: <CalendarIcon className="w-3.5 h-3.5" />
+                                        active: 'bg-blue-500 text-white border-blue-600 shadow-lg shadow-blue-500/30',
+                                        inactive: 'bg-slate-100 text-slate-400 border-slate-200 hover:bg-blue-50 hover:text-blue-600',
+                                        icon: <CalendarIcon className="w-8 h-8" />,
+                                        label: 'FÉRIÉ',
+                                        color: 'blue'
+                                    },
+                                    CONGE: {
+                                        active: 'bg-orange-500 text-white border-orange-600 shadow-lg shadow-orange-500/30',
+                                        inactive: 'bg-slate-100 text-slate-400 border-slate-200 hover:bg-orange-50 hover:text-orange-600',
+                                        icon: <CalendarIcon className="w-8 h-8" />,
+                                        label: 'CONGÉ',
+                                        color: 'orange'
+                                    },
+                                    MALADIE: {
+                                        active: 'bg-purple-500 text-white border-purple-600 shadow-lg shadow-purple-500/30',
+                                        inactive: 'bg-slate-100 text-slate-400 border-slate-200 hover:bg-purple-50 hover:text-purple-600',
+                                        icon: <AlertCircle className="w-8 h-8" />,
+                                        label: 'MALADIE',
+                                        color: 'purple'
                                     },
                                 };
 
@@ -338,42 +351,83 @@ export default function ChefPointagePage() {
                                 };
 
                                 return (
-                                    <tr key={emp.id} className="hover:bg-slate-50/80 transition-all duration-300 group">
-                                        <td className="px-10 py-6">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white text-lg font-black uppercase shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+                                    <tr key={emp.id} className="hover:bg-slate-50/80 transition-all duration-300 group bg-white">
+                                        {/* SENIOR-FRIENDLY: Larger employee info */}
+                                        <td className="px-10 py-8">
+                                            <div className="flex items-center gap-5">
+                                                <div className="w-16 h-16 rounded-2xl bg-slate-900 flex items-center justify-center text-white text-2xl font-black uppercase shrink-0 shadow-lg group-hover:scale-110 transition-transform">
                                                     {emp.nom?.charAt(0)}{emp.prenom?.charAt(0)}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="text-lg font-black text-slate-900 uppercase truncate leading-none">{emp.nom} {emp.prenom}</p>
-                                                    <p className="text-[10px] text-blue-600 font-black uppercase tracking-[0.2em] mt-2">{emp.poste}</p>
+                                                    <p className="text-2xl font-black text-slate-900 uppercase truncate leading-none">{emp.nom} {emp.prenom}</p>
+                                                    <p className="text-sm text-blue-600 font-black uppercase tracking-wider mt-2 bg-blue-50 px-3 py-1 rounded-lg inline-block">{emp.poste}</p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
-                                            <div className={`flex justify-center gap-1.5 min-w-[500px] ${isLocked ? 'pointer-events-none' : ''}`}>
-                                                {['PRESENT', 'ABSENT', 'FERIE', 'CONGE', 'MALADIE'].map((s) => (
-                                                    <button
-                                                        key={s}
-                                                        onClick={() => handleSheetChange(emp.id, 'statut', s)}
-                                                        disabled={isLocked}
-                                                        className={`btn-pill border-2 text-[9px] font-black uppercase tracking-tighter ${getStatusStyle(s, entry.statut)} ${isLocked && s !== entry.statut ? 'opacity-30' : ''}`}
-                                                        data-testid={`status-btn-${s.toLowerCase()}-${emp.id}`}
-                                                        aria-label={statutLabels[s]}
-                                                        title={statutLabels[s]}
-                                                    >
-                                                        {configs[s].icon}
-                                                        {statutLabels[s]}
-                                                    </button>
-                                                ))}
+                                        {/* SENIOR-FRIENDLY: Large status column with massive buttons */}
+                                        <td className="px-4 py-8">
+                                            <div className={`grid grid-cols-5 gap-3 min-w-[700px] ${isLocked ? 'pointer-events-none' : ''}`}>
+                                                {/* Status buttons in order: PRÉSENT | ABSENT | FÉRIÉ | CONGÉ | MALADIE */}
+                                                {['PRESENT', 'ABSENT', 'FERIE', 'CONGE', 'MALADIE'].map((s) => {
+                                                    const isActive = s === entry.statut;
+                                                    const cfg = configs[s];
+                                                    return (
+                                                        <button
+                                                            key={s}
+                                                            onClick={() => handleSheetChange(emp.id, 'statut', s)}
+                                                            disabled={isLocked}
+                                                            className={`
+                                                                h-20 w-full rounded-xl border-3 font-black text-lg uppercase tracking-wide
+                                                                flex flex-col items-center justify-center gap-2
+                                                                transition-all duration-200
+                                                                ${isActive 
+                                                                    ? `${cfg.active} scale-105 ring-4 ring-white` 
+                                                                    : `${cfg.inactive} hover:scale-102`
+                                                                }
+                                                                ${isLocked && !isActive ? 'opacity-40' : ''}
+                                                            `}
+                                                            data-testid={`status-btn-${s.toLowerCase()}-${emp.id}`}
+                                                            aria-label={cfg.label}
+                                                            title={cfg.label}
+                                                        >
+                                                            {cfg.icon}
+                                                            <span>{cfg.label}</span>
+                                                        </button>
+                                                    );
+                                                })}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-6 text-center">
-                                            <div className={`flex items-center justify-center gap-2 ${isAbsent || isLocked ? 'opacity-30 pointer-events-none' : ''}`}>
-                                                <button disabled={isLocked} onClick={() => handleSheetChange(emp.id, 'heuresSupp', Math.max(0, (entry.heuresSupp || 0) - 0.5))} className="w-8 h-8 rounded-full border border-slate-200 bg-white text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-all shadow-sm font-bold flex items-center justify-center">-</button>
-                                                <span className="text-lg font-black w-8 text-slate-900 font-mono-numbers">{entry.heuresSupp || 0}</span>
-                                                <button disabled={isLocked} onClick={() => handleSheetChange(emp.id, 'heuresSupp', (entry.heuresSupp || 0) + 0.5)} className="w-8 h-8 rounded-full border border-slate-200 bg-white text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-all shadow-sm font-bold flex items-center justify-center">+</button>
-                                            </div>
+                                        {/* SENIOR-FRIENDLY: Large overtime control with lock indicator */}
+                                        <td className="px-6 py-8 text-center">
+                                            {(entry.statut === 'MALADIE' || entry.statut === 'CONGE' || entry.statut === 'ABSENT') ? (
+                                                /* Locked state for MALADIE, CONGE, ABSENT */
+                                                <div className="flex flex-col items-center justify-center gap-2">
+                                                    <div className="flex items-center justify-center gap-2 bg-slate-100 rounded-xl px-6 py-4">
+                                                        <Lock className="w-6 h-6 text-slate-400" />
+                                                        <span className="text-2xl font-black text-slate-400 font-mono-numbers">0</span>
+                                                    </div>
+                                                    <span className="text-xs font-bold text-slate-400 uppercase">Verrouillé</span>
+                                                </div>
+                                            ) : (
+                                                /* Active state for PRESENT and FERIE */
+                                                <div className={`flex items-center justify-center gap-3 ${isLocked ? 'opacity-30 pointer-events-none' : ''}`}>
+                                                    <button 
+                                                        disabled={isLocked} 
+                                                        onClick={() => handleSheetChange(emp.id, 'heuresSupp', Math.max(0, (entry.heuresSupp || 0) - 0.5))} 
+                                                        className="w-12 h-12 rounded-xl border-2 border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-md font-black text-xl flex items-center justify-center"
+                                                    >
+                                                        -
+                                                    </button>
+                                                    <span className="text-3xl font-black w-16 text-slate-900 font-mono-numbers">{entry.heuresSupp || 0}</span>
+                                                    <button 
+                                                        disabled={isLocked} 
+                                                        onClick={() => handleSheetChange(emp.id, 'heuresSupp', (entry.heuresSupp || 0) + 0.5)} 
+                                                        className="w-12 h-12 rounded-xl border-2 border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-md font-black text-xl flex items-center justify-center"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="px-6 py-6 text-center">
                                             <div className={`relative group/input ${isLocked ? 'opacity-30 pointer-events-none' : ''}`}>
@@ -413,7 +467,7 @@ export default function ChefPointagePage() {
                                 );
                             })}
                         </tbody>
-                        <tfoot className="bg-slate-50 border-t-2 border-slate-100 font-bold uppercase text-[10px]">
+                        <tfoot className="bg-slate-50 border-t border-slate-200 font-bold uppercase text-sm">
                             <tr>
                                 <td colSpan="2" className="px-10 py-8 text-right text-slate-400 tracking-[0.2em]">Récapitulatif de la sélection</td>
                                 <td className="px-6 py-8 text-center text-slate-900">

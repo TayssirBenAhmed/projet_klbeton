@@ -30,6 +30,7 @@ import {
     ArrowRight
 } from 'lucide-react';
 import { useDate } from '@/context/DateContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { generateDailyReportPDF } from '@/lib/services/pdfService';
 import SuccessModal from '@/components/ui/SuccessModal';
 import Link from 'next/link';
@@ -55,6 +56,7 @@ export default function AdminDashboardPage() {
 }
 
 function AdminDashboardContent() {
+    const { t, language } = useLanguage();
     const { date } = useDate();
     const router = useRouter();
 
@@ -68,8 +70,15 @@ function AdminDashboardContent() {
         if (date) fetchStats();
     }, [date]);
 
-    // Format display date
-    const formattedDate = new Date(date).toLocaleDateString('fr-FR', {
+    // Format display date based on language
+    const getLocale = () => {
+        switch(language) {
+            case 'ar': return 'ar-SA';
+            case 'en': return 'en-US';
+            default: return 'fr-FR';
+        }
+    };
+    const formattedDate = new Date(date).toLocaleDateString(getLocale(), {
         weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     }).toUpperCase();
 
@@ -86,38 +95,10 @@ function AdminDashboardContent() {
         }
     };
 
-    const handleGenerateReport = async () => {
+    const handleGenerateReport = () => {
         setGeneratingPDF(true);
         try {
-            // For a daily report, we might not need to fetch separate 'rapports' API if 'stats' has enough data,
-            // or we might want to fetch a specific 'daily-report' endpoint.
-            // But user requirement says: "Tableau des présences... Masquer tout le reste".
-            // Our stats.presencesJour has limit 10. We might need full list?
-            // Let's assume for now we use what we have or fetch full daily list.
-            // Let's fetch full daily stats just to be safe or use existing if complete.
-            // Actually, let's just pass `stats` to the new function, assuming `presencesJour` or `absencesJour` covers it,
-            // OR we might need to fetch a "full daily list" if pagination was involved.
-            // To be precise, let's hit the stats endpoint again but maybe ensuring full list? 
-            // Or just pass current `stats` if sufficient. 
-            // NOTE: `stats.presencesJour` uses `slice(0, 10)`. We need ALL pointages for PDF.
-            // Let's fetch full pointage list for that day.
-
-            const res = await fetch(`/api/admin/pointages/daily?date=${date}`);
-            // Wait, we don't have this endpoint yet. Let's make a dedicated quick fetch in `handleGenerateReport` or just rely on `stats` if we modify it to return all?
-            // Modifying stats to return ALL might be heavy.
-            // Let's assume we use `stats` for now but we know it's sliced.
-            // CORRECT APPROACH: We should probably use the data we have, or if we need a full report, hit an endpoint.
-            // Let's stick to generating what we see for now, BUT user said "Tableau des présences...".
-            // I will implement `generateDailyReportPDF` to take `stats` and formatted date.
-
-            // Re-fetch stats with a flag? or just handle it client side?
-            // Let's pass the data we have, acknowledging the slice limit potentially.
-            // To do it right, I'll fetch the full list here quickly.
-
-            const fullStatsRes = await fetch(`/api/admin/stats?date=${date}&full=true`); // Hint: maybe add support for 'full'
-            const fullStats = await fullStatsRes.json();
-
-            generateDailyReportPDF(fullStats, date);
+            generateDailyReportPDF(stats, date);
             setShowSuccess(true);
         } catch (error) {
             console.error('Erreur génération rapport dashboard:', error);
@@ -130,7 +111,7 @@ function AdminDashboardContent() {
         return (
             <div className="flex flex-col items-center justify-center h-[60vh]">
                 <div className="w-16 h-16 border-8 border-blue-600/20 border-t-blue-600 rounded-full animate-spin" />
-                <p className="mt-6 text-slate-900 font-black uppercase tracking-widest text-lg">CHARGEMENT...</p>
+                <p className="mt-6 text-slate-900 font-black uppercase tracking-widest text-lg">{t('loading')}</p>
             </div>
         );
     }
@@ -145,7 +126,7 @@ function AdminDashboardContent() {
 
     // 1. Doughnut: État du Jour
     const doughnutData = {
-        labels: ['Présents', 'Absents', 'Congés', 'Maladie', 'Fériés'],
+        labels: [t('present'), t('absent'), t('conge'), t('maladie'), t('ferie')],
         datasets: [{
             data: [
                 stats.repartitionAujourdhui?.PRESENT || 0,
@@ -162,9 +143,9 @@ function AdminDashboardContent() {
 
     // 2. Bar: Avances
     const barData = {
-        labels: stats.advancesByWeek?.map(w => w.week) || [],
+        labels: stats.advancesByWeek?.map((w, i) => `${t('week')} ${i + 1}`) || [],
         datasets: [{
-            label: 'Avances (TND)',
+            label: `${t('advances')} (TND)`,
             data: stats.advancesByWeek?.map(w => w.total) || [],
             backgroundColor: '#0f172a',
             borderRadius: 12,
@@ -173,7 +154,7 @@ function AdminDashboardContent() {
 
     // 3. Line: Heures Supplémentaires
     const hsLineData = {
-        labels: ['Semaine 1', 'Semaine 2', 'Semaine 3', 'Semaine 4'],
+        labels: [`${t('week')} 1`, `${t('week')} 2`, `${t('week')} 3`, `${t('week')} 4`],
         datasets: (stats.hsWeeklyByEmployee || []).map((emp, idx) => {
             const color = getEmployeeColor(idx);
             return {
@@ -205,37 +186,37 @@ function AdminDashboardContent() {
     };
 
     const statCards = [
-        { label: 'Taux Présence (Mois)', value: `${stats.stats?.tauxPresenceJour || 0}%`, icon: Activity, color: 'blue' },
-        { label: 'Employés Actifs', value: stats.stats?.totalEmployes || 0, icon: Users, color: 'slate' },
-        { label: 'Total Avances', value: `${(stats.stats?.totalAvances || 0).toFixed(3)} TND`, icon: Wallet, color: 'rose' },
-        { label: 'H. Supp (Mois)', value: `${(stats.stats?.totalHeuresSupp || 0).toFixed(0)}h`, icon: Clock, color: 'indigo' },
+        { label: t('monthPresenceRate'), value: `${stats.stats?.tauxPresenceJour || 0}%`, icon: Activity, color: 'blue' },
+        { label: t('activeEmployees'), value: stats.stats?.totalEmployes || 0, icon: Users, color: 'slate' },
+        { label: t('totalAdvances'), value: `${(stats.stats?.totalAvances || 0).toFixed(3)} TND`, icon: Wallet, color: 'rose' },
+        { label: t('monthOvertime'), value: `${(stats.stats?.totalHeuresSupp || 0).toFixed(0)}h`, icon: Clock, color: 'indigo' },
     ];
 
     return (
-        <div className="space-y-10 pb-12 animate-fade-in">
+        <div className={`space-y-10 pb-12 animate-fade-in ${language === 'ar' ? 'text-right' : 'text-left'}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pb-8 border-b border-slate-200">
                 <div>
                     <h1 className="text-4xl font-black text-slate-900 uppercase tracking-tighter">
-                        VUE <span className="text-blue-600">D'ENSEMBLE</span>
+                        {t('overview')}
                     </h1>
                     <p className="text-slate-400 font-bold mt-2 uppercase tracking-[0.3em] text-[10px]">
-                        Situation au : <span className="text-blue-600">{formattedDate}</span>
+                        {t('asOf')} <span className="text-blue-600">{formattedDate}</span>
                     </p>
                 </div>
                 <div className="flex flex-col md:flex-row md:items-center gap-4">
                     {stats.isJournalValide ? (
                         <div className="bg-emerald-50 text-emerald-600 px-6 py-3 rounded-2xl border border-emerald-500/30 font-bold text-xs uppercase flex items-center gap-3 shadow-sm">
-                            <CheckCircle2 className="w-5 h-5 shadow-sm" /> JOURNÉE VALIDÉE
+                            <CheckCircle2 className="w-5 h-5 shadow-sm" /> {t('dayValidated')}
                         </div>
                     ) : (
                         <div className="bg-rose-50 text-rose-600 px-6 py-3 rounded-2xl border border-rose-500/30 font-bold text-xs uppercase flex items-center gap-3 shadow-sm animate-pulse">
-                            <AlertCircle className="w-5 h-5" /> SAISIE EN ATTENTE
+                            <AlertCircle className="w-5 h-5" /> {t('entryPending')}
                         </div>
                     )}
                     <button onClick={handleGenerateReport} disabled={generatingPDF} className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center gap-3 shadow-lg shadow-slate-900/10">
                         {generatingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowUpRight className="w-4 h-4" />}
-                        Imprimer Rapport
+                        {t('printReport')}
                     </button>
                 </div>
             </div>
@@ -243,13 +224,13 @@ function AdminDashboardContent() {
             {/* Bento Grid Layout */}
             <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-6">
                 {statCards.map((stat, idx) => (
-                    <motion.div key={idx} whileHover={{ y: -4 }} className="bento-card col-span-1 md:col-span-2 lg:col-span-1 flex flex-col justify-between">
-                        <div className="flex items-center justify-between mb-4">
+                    <motion.div key={idx} whileHover={{ y: -4 }} className={`bento-card col-span-1 md:col-span-2 lg:col-span-1 flex flex-col justify-between ${language === 'ar' ? 'items-end' : 'items-start'}`}>
+                        <div className={`flex items-center mb-4 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
                             <div className={`p-3 rounded-2xl bg-${stat.color}-50 text-${stat.color}-600 border border-${stat.color}-100`}>
                                 <stat.icon className="w-5 h-5" />
                             </div>
                         </div>
-                        <div>
+                        <div className={language === 'ar' ? 'text-right' : 'text-left'}>
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
                             <p className="text-3xl font-black text-slate-900 tracking-tighter font-mono-numbers">{stat.value}</p>
                         </div>
@@ -259,7 +240,7 @@ function AdminDashboardContent() {
                 {/* Doughnut Chart */}
                 <div className="bento-card col-span-1 md:col-span-4 lg:col-span-2 lg:row-span-2">
                     <h3 className="text-sm font-black uppercase mb-8 flex items-center gap-3 text-slate-900">
-                        <Activity className="w-4 h-4 text-blue-600" /> État du Jour
+                        <Activity className="w-4 h-4 text-blue-600" /> {t('dailyStatus')}
                     </h3>
                     <div className="h-[280px] relative">
                         <Doughnut data={doughnutData} options={{ maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '75%' }} />
@@ -267,14 +248,14 @@ function AdminDashboardContent() {
                             <span className="text-4xl font-black text-slate-900 font-mono-numbers">
                                 {Math.round(((stats.repartitionAujourdhui?.PRESENT || 0) / (stats.stats?.totalEmployes || 1)) * 100) || 0}%
                             </span>
-                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Taux Présence</span>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{t('presenceRate')}</span>
                         </div>
                     </div>
                     {/* Distribution details */}
                     <div className="mt-8 grid grid-cols-5 gap-1">
                         {['PRESENT', 'ABSENT', 'CONGE', 'MALADIE', 'FERIE'].map((key) => (
-                            <div key={key} className="text-center">
-                                <p className="text-[7px] font-black text-slate-400 uppercase mb-1 truncate">{key.slice(0, 5)}.</p>
+                            <div key={key} className={`text-center ${language === 'ar' ? 'rtl-text' : ''}`}>
+                                <p className="text-[7px] font-black text-slate-400 uppercase mb-1 truncate">{t(key.toLowerCase()).slice(0, 6)}</p>
                                 <div className={`h-1.5 rounded-full mb-1 ${key === 'PRESENT' ? 'bg-emerald-500' : key === 'ABSENT' ? 'bg-rose-500' : key === 'CONGE' ? 'bg-amber-500' : key === 'MALADIE' ? 'bg-pink-500' : 'bg-blue-500'}`} />
                                 <p className="text-[10px] font-black font-mono-numbers">{stats.repartitionAujourdhui?.[key] || 0}</p>
                             </div>
@@ -285,7 +266,7 @@ function AdminDashboardContent() {
                 {/* Finance Chart */}
                 <div className="bento-card col-span-1 md:col-span-4 lg:col-span-4 lg:row-span-1">
                     <h3 className="text-sm font-black uppercase flex items-center gap-3 mb-8 text-slate-900">
-                        <Wallet className="w-4 h-4 text-rose-600" /> Flux des Avances
+                        <Wallet className="w-4 h-4 text-rose-600" /> {t('advanceFlow')}
                     </h3>
                     <div className="h-[200px]">
                         <Bar data={barData} options={{ maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
@@ -295,7 +276,7 @@ function AdminDashboardContent() {
                 {/* HS Evolution */}
                 <div className="bento-card col-span-1 md:col-span-4 lg:col-span-4 lg:row-span-1">
                     <h3 className="text-sm font-black uppercase flex items-center gap-3 mb-8 text-slate-900">
-                        <Clock className="w-4 h-4 text-indigo-600" /> Évolution des HS
+                        <Clock className="w-4 h-4 text-indigo-600" /> {t('overtimeEvolution')}
                     </h3>
                     <div className="h-[200px]">
                         <Line data={hsLineData} options={hsLineOptions} />
@@ -305,7 +286,7 @@ function AdminDashboardContent() {
                 {/* Absences List */}
                 <div className="bento-card col-span-1 md:col-span-2 lg:col-span-3">
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-sm font-black uppercase text-slate-900">Absences Alarmantes</h3>
+                        <h3 className="text-sm font-black uppercase text-slate-900">{t('alarmingAbsences')}</h3>
                         <AlertCircle className="w-4 h-4 text-rose-500" />
                     </div>
                     <div className="space-y-3 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
@@ -316,7 +297,7 @@ function AdminDashboardContent() {
                             </div>
                         ))}
                         {(!stats.absencesJour || stats.absencesJour.length === 0) && (
-                            <div className="text-center py-12 text-slate-400 font-bold uppercase text-[9px]">Effectif au complet</div>
+                            <div className="text-center py-12 text-slate-400 font-bold uppercase text-[9px]">{t('fullStaff')}</div>
                         )}
                     </div>
                 </div>
@@ -324,7 +305,7 @@ function AdminDashboardContent() {
                 {/* Presences List */}
                 <div className="bento-card col-span-1 md:col-span-2 lg:col-span-3">
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-sm font-black uppercase text-slate-900">Derniers Pointages</h3>
+                        <h3 className="text-sm font-black uppercase text-slate-900">{t('latestAttendance')}</h3>
                         <Clock className="w-4 h-4 text-blue-500" />
                     </div>
                     <div className="space-y-3 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
@@ -332,21 +313,21 @@ function AdminDashboardContent() {
                             <div key={i} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl">
                                 <div>
                                     <p className="font-bold text-slate-900 uppercase text-xs leading-none">{p.nom} {p.prenom}</p>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1.5">Validé à {new Date(p.heureValidation).toLocaleTimeString()}</p>
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1.5">{t('validatedAt')} {new Date(p.heureValidation).toLocaleTimeString(getLocale())}</p>
                                 </div>
                                 <span className="text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100">{p.statut}</span>
                             </div>
                         ))}
                         {(!stats.presencesJour || stats.presencesJour.length === 0) && (
                             <div className="text-center py-12">
-                                <p className="text-slate-400 font-bold uppercase text-[9px] tracking-widest">Aucune activité aujourd'hui</p>
+                                <p className="text-slate-400 font-bold uppercase text-[9px] tracking-widest">{t('noActivityToday')}</p>
                             </div>
                         )}
                     </div>
                 </div>
             </div>
 
-            <SuccessModal isOpen={showSuccess} onClose={() => setShowSuccess(false)} title="Rapport Généré" message="Le récapitulatif a été traité avec succès." />
+            <SuccessModal isOpen={showSuccess} onClose={() => setShowSuccess(false)} title={t('reportGenerated')} message={t('reportSuccessMessage')} />
         </div>
     );
 }

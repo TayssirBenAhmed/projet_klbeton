@@ -217,7 +217,7 @@ export default function PointagePage() {
                 )}
             </AnimatePresence>
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b-4 border-slate-900 pb-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b-2 border-slate-200 pb-8">
                 <div>
                     <h1 className="text-5xl font-black text-slate-900 tracking-tight flex items-center gap-4 uppercase">
                         FEUILLE DE <span className="text-blue-600">PRÉSENCE</span>
@@ -254,7 +254,7 @@ export default function PointagePage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.1 }}
                         key={idx}
-                        className="bg-white rounded-[24px] p-6 border-3 border-slate-900 shadow-xl flex items-center gap-5"
+                        className="bg-white rounded-3xl p-6 shadow-xl flex items-center gap-5"
                     >
                         <div className={`w-14 h-14 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center border-2 border-current hover:rotate-12 transition-transform`}>
                             <stat.icon className="w-7 h-7" />
@@ -268,7 +268,7 @@ export default function PointagePage() {
             </div>
 
             {/* Main Controls Overlay */}
-            <div className="bg-white p-8 rounded-[32px] border-3 border-slate-900 shadow-2xl grid grid-cols-1 md:grid-cols-2 gap-8 sticky top-4 z-40 bg-white/95 backdrop-blur-md">
+            <div className="bg-white p-8 rounded-3xl shadow-2xl grid grid-cols-1 md:grid-cols-2 gap-8 sticky top-4 z-40 bg-white/95 backdrop-blur-md">
                 <div className="relative">
                     <label className="text-sm font-black text-slate-500 uppercase mb-3 block pointer-events-none">1. DATE DU POINTAGE :</label>
                     <input
@@ -294,10 +294,10 @@ export default function PointagePage() {
             </div>
 
             {/* Attendance Spreadsheet */}
-            <div className="bg-white rounded-[40px] border-4 border-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden">
+            <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y-4 divide-slate-900">
-                        <thead className="bg-slate-900 text-white">
+                    <table className="min-w-full divide-y-2 divide-slate-200">
+                        <thead className="bg-slate-800 text-white">
                             <tr>
                                 <th className="px-10 py-8 text-left text-sm font-black uppercase tracking-[0.2em]">Employé</th>
                                 <th className="px-10 py-8 text-center text-sm font-black uppercase tracking-[0.2em]">Statut</th>
@@ -326,12 +326,13 @@ export default function PointagePage() {
                                         </td>
                                         <td className="px-10 py-8 text-center">
                                             <div className="flex justify-center gap-2">
+                                                {/* Status buttons in order: PRÉSENT | ABSENT | FÉRIÉ | CONGÉ | MALADIE */}
                                                 {[
                                                     { id: 'PRESENT', label: 'PRÉSENT', color: 'emerald', bg: 'bg-emerald-600', border: 'border-emerald-700' },
                                                     { id: 'ABSENT', label: 'ABSENT', color: 'rose', bg: 'bg-rose-600', border: 'border-rose-700' },
+                                                    { id: 'FERIE', label: 'FÉRIÉ', color: 'blue', bg: 'bg-blue-600', border: 'border-blue-700' },
                                                     { id: 'CONGE', label: 'CONGÉ', color: 'amber', bg: 'bg-amber-500', border: 'border-amber-600' },
-                                                    { id: 'MALADIE', label: 'MALADIE', color: 'red', bg: 'bg-red-600', border: 'border-red-700' },
-                                                    { id: 'FERIE', label: 'FÉRIÉ', color: 'indigo', bg: 'bg-indigo-600', border: 'border-indigo-700' },
+                                                    { id: 'MALADIE', label: 'MALADIE', color: 'purple', bg: 'bg-purple-600', border: 'border-purple-700' },
                                                 ].map((opt) => (
                                                     <button
                                                         key={opt.id}
@@ -348,23 +349,27 @@ export default function PointagePage() {
                                             </div>
                                         </td>
                                         <td className="px-10 py-8 text-center">
-                                            <div className="flex items-center justify-center gap-4">
+                                            {/* MALADIE and CONGE status disable overtime hours and set to 0 */}
+                                            <div className={`flex items-center justify-center gap-4 ${entry.statut === 'MALADIE' || entry.statut === 'CONGE' ? 'opacity-30 pointer-events-none' : ''}`}>
                                                 <button
+                                                    disabled={entry.statut === 'MALADIE' || entry.statut === 'CONGE'}
                                                     onClick={() => handleSheetChange(emp.id, 'heuresSupp', Math.max(0, (entry.heuresSupp || 0) - 0.5))}
-                                                    className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg font-black border-2 border-blue-200 hover:bg-blue-600 hover:text-white transition-colors"
+                                                    className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg font-black border-2 border-blue-200 hover:bg-blue-600 hover:text-white transition-colors disabled:opacity-50"
                                                 >
                                                     -
                                                 </button>
                                                 <input
                                                     type="number"
-                                                    value={entry.heuresSupp}
+                                                    value={(entry.statut === 'MALADIE' || entry.statut === 'CONGE') ? 0 : entry.heuresSupp}
+                                                    disabled={entry.statut === 'MALADIE' || entry.statut === 'CONGE'}
                                                     onChange={(e) => handleSheetChange(emp.id, 'heuresSupp', parseFloat(e.target.value) || 0)}
                                                     data-testid={`hs-input-${emp.id}`}
-                                                    className="w-24 text-center text-2xl font-black bg-blue-50 border-3 border-blue-200 rounded-xl py-2 focus:border-blue-700 outline-none"
+                                                    className="w-24 text-center text-2xl font-black bg-blue-50 border-3 border-blue-200 rounded-xl py-2 focus:border-blue-700 outline-none disabled:bg-slate-100 disabled:text-slate-400"
                                                 />
                                                 <button
+                                                    disabled={entry.statut === 'MALADIE' || entry.statut === 'CONGE'}
                                                     onClick={() => handleSheetChange(emp.id, 'heuresSupp', (entry.heuresSupp || 0) + 0.5)}
-                                                    className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg font-black border-2 border-blue-200 hover:bg-blue-600 hover:text-white transition-colors"
+                                                    className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg font-black border-2 border-blue-200 hover:bg-blue-600 hover:text-white transition-colors disabled:opacity-50"
                                                 >
                                                     +
                                                 </button>
@@ -399,7 +404,7 @@ export default function PointagePage() {
                 </div>
 
                 {/* Footer Controls */}
-                <div className="p-10 bg-slate-900 flex flex-col md:flex-row items-center justify-between gap-8">
+                <div className="p-10 bg-slate-800 flex flex-col md:flex-row items-center justify-between gap-8 rounded-b-3xl">
                     <div className="text-white">
                         <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Total Employés filtrés :</p>
                         <p className="text-4xl font-black">{filteredEmployes.length} Collaborateurs</p>
@@ -438,9 +443,9 @@ export default function PointagePage() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white w-full max-w-2xl rounded-[40px] overflow-hidden shadow-2xl relative z-10 border-4 border-slate-900"
+                            className="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl relative z-10"
                         >
-                            <div className="p-10 border-b-4 border-slate-100 flex items-center justify-between bg-slate-50">
+                            <div className="p-10 border-b-2 border-slate-100 flex items-center justify-between bg-slate-50">
                                 <h3 className="text-3xl font-black text-slate-900 uppercase">NOUVEAU POINTAGE</h3>
                                 <button onClick={() => setShowModal(false)} className="w-16 h-16 flex items-center justify-center bg-rose-600 text-white rounded-2xl hover:bg-black font-black text-2xl">
                                     X

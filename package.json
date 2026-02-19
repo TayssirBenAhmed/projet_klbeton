@@ -27,6 +27,7 @@
     "react-chartjs-2": "^5.3.1",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.71.1",
+    "react-hot-toast": "^2.6.0",
     "react-leaflet": "^5.0.0",
     "zod": "^4.3.6"
   },

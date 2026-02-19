@@ -159,18 +159,26 @@ export default function EmployeDetailPage() {
                                     }) : 'N/A'}
                                 </p>
                             </div>
+                            {/* Fixed: Show Monthly Salary and Daily Salary separately */}
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Salaire Journalier</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Salaire Mensuel</p>
                                 <p className="text-sm font-bold text-blue-700 flex items-center gap-2">
-                                    <Clock className="w-4 h-4" />
+                                    <Wallet className="w-4 h-4" />
                                     {(employe?.salaireBase || 0).toFixed(3)} TND
                                 </p>
                             </div>
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Salaire Horaire</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Salaire Journalier</p>
                                 <p className="text-sm font-bold text-emerald-600 flex items-center gap-2">
+                                    <Clock className="w-4 h-4" />
+                                    {((employe?.salaireBase || 0) / 26).toFixed(3)} TND
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Salaire Horaire</p>
+                                <p className="text-sm font-bold text-purple-600 flex items-center gap-2">
                                     <TrendingUp className="w-4 h-4" />
-                                    {(employe?.recapMensuel?.salaire?.tauxHoraire || 0).toFixed(2)} TND
+                                    {(employe?.recapMensuel?.salaire?.tauxHoraire || ((employe?.salaireBase || 0) / 26 / 8)).toFixed(2)} TND
                                 </p>
                             </div>
                         </div>

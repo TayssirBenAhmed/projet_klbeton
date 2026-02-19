@@ -2,25 +2,43 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { Send, User, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
-import { useDate } from '@/context/DateContext';
+import { User } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
+import { useNotifications } from '@/context/NotificationContext';
+import ChatContactList from '@/components/chat/ChatContactList';
+import ChatMessageBubble from '@/components/chat/ChatMessageBubble';
+import ChatInput from '@/components/chat/ChatInput';
 
+/**
+ * MessagesPage - Modern chat interface with RTL support
+ * 
+ * Features:
+ * - Contact list sorted by last message (most recent first)
+ * - Senior-friendly message bubbles (20px font, rounded-2xl)
+ * - Modern input with paper plane button
+ * - Full RTL support for Arabic
+ * - Auto-scroll to new messages
+ * - Clean slate-50 background (no dot pattern)
+ */
 export default function MessagesPage() {
     const { data: session } = useSession();
-    const { date } = useDate(); // Context available if needed, but chat usually realtime
+    const { t, language, isRTL } = useLanguage();
+    const { markAllAsRead } = useNotifications();
     const [messages, setMessages] = useState([]);
-    const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
+    
+    // Track unread message IDs for highlighting
+    const [unreadMessageIds, setUnreadMessageIds] = useState(new Set());
 
-    // For Admin: List of contacts (Chefs)
-    // For Chef: Contact is Admin
+    // Contacts list
     const [contacts, setContacts] = useState([]);
     const [selectedContactId, setSelectedContactId] = useState(null);
 
     const scrollRef = useRef(null);
+    const messagesEndRef = useRef(null);
 
-    // 1. Identify User Role & Load Contacts/Messages
+    // 1. Load contacts on mount
     useEffect(() => {
         if (session?.user) {
             loadContacts();
@@ -34,45 +52,18 @@ export default function MessagesPage() {
             fetchMessages(selectedContactId);
             interval = setInterval(() => {
                 fetchMessages(selectedContactId);
-            }, 10000); // 10s auto-refresh
+            }, 10000);
         }
         return () => clearInterval(interval);
     }, [selectedContactId]);
 
-    // Auto-scroll to bottom
+    // 3. Auto-scroll to bottom when messages change
     useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
     const loadContacts = async () => {
         try {
-            // We need an endpoint to get users for chat. 
-            // Reuse existing or mock for now? Admin needs list of Chefs.
-            // Let's assume we can fetch users. 
-            // Creating a quick inline fetch or dedicated endpoint?
-            // Let's use /api/users if exists, or just fetch known roles?
-            // Wait, we don't have a standardized 'get all users' endpoint visible in recent context.
-            // But we do have 'api/employes' which links to users.
-            // Let's try to fetch active users via a new small logic or assume we just load messages and see who spoke?
-            // BETTER: Admin sees list of CHEFS. Chef sees ADMIN.
-
-            // I'll assume we can implement a quick fetch logic in `api/messages/contacts` or similar.
-            // Or just hardcode for V1 if we don't have user management API ready?
-            // Actually, we can just use the `api/messages` to get 'recent conversations'.
-            // But if it's a new chat, we need a list.
-
-            // Let's fetch "available chat partners". 
-            // Logic: 
-            // If Admin -> Fetch all users with role CHEF.
-            // If Chef -> Fetch all users with role ADMIN.
-
-            // I'll create `api/users/chat-contacts` quickly?
-            // Or just fallback to a known endpoint. 
-            // Let's add fetching logic here directly if possible? No, we need server side.
-            // I will implement `api/users/chat-contacts/route.js` next.
-
             const res = await fetch('/api/users/chat-contacts');
             const data = await res.json();
 
@@ -95,10 +86,25 @@ export default function MessagesPage() {
             if (Array.isArray(data)) {
                 setMessages(data);
 
+                // Update last message sender info in contacts
+                if (data.length > 0) {
+                    const lastMsg = data[data.length - 1];
+                    setContacts(prev => prev.map(c => 
+                        c.id === contactId 
+                            ? { ...c, lastMessageSenderId: lastMsg.senderId }
+                            : c
+                    ));
+                }
+
+                // Track unread messages for highlighting
+                const unreadMsgs = data.filter(m => m.senderId === contactId && !m.isRead);
+                setUnreadMessageIds(new Set(unreadMsgs.map(m => m.id)));
+                
                 // Mark as read immediately if last message is from contact
-                const unread = data.filter(m => m.senderId === contactId && !m.isRead);
-                if (unread.length > 0) {
+                if (unreadMsgs.length > 0) {
                     await markAsRead(contactId);
+                    // Clear notifications when entering chat
+                    markAllAsRead();
                 }
             }
         } catch (error) {
@@ -112,16 +118,15 @@ export default function MessagesPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ senderId })
         });
-        // Trigger sidebar badge update? (Maybe global context or event?)
-        // For distinct update, we might rely on SWR or next fetch cycle
+        
+        // Update unread count in contacts list
+        setContacts(prev => prev.map(c => 
+            c.id === senderId ? { ...c, unreadCount: 0 } : c
+        ));
     };
 
-    const handleSendMessage = async (e) => {
-        e.preventDefault();
-        if (!newMessage.trim() || !selectedContactId) return;
-
-        const tempId = Date.now();
-        const content = newMessage;
+    const handleSendMessage = async (content) => {
+        if (!content.trim() || !selectedContactId) return;
 
         setSending(true);
         try {
@@ -136,7 +141,18 @@ export default function MessagesPage() {
             const savedMessage = await res.json();
 
             setMessages(prev => [...prev, savedMessage]);
-            setNewMessage('');
+            
+            // Update contact's last message info with sender ID
+            setContacts(prev => prev.map(c => 
+                c.id === selectedContactId 
+                    ? { 
+                        ...c, 
+                        lastMessage: content, 
+                        lastMessageAt: new Date().toISOString(),
+                        lastMessageSenderId: session?.user?.id
+                    }
+                    : c
+            ));
         } catch (error) {
             console.error('Error sending message:', error);
         } finally {
@@ -144,58 +160,58 @@ export default function MessagesPage() {
         }
     };
 
-    if (loading) return <div className="p-10 text-center font-bold text-slate-400">CHARGEMENT MESSAGERIE...</div>;
+    // Get selected contact info
+    const selectedContact = contacts.find(c => c.id === selectedContactId);
+
+    if (loading) {
+        return (
+            <div className="p-10 text-center font-bold text-slate-400 text-xl">
+                {t('loading')}
+            </div>
+        );
+    }
 
     return (
-        <div className="flex h-[calc(100vh-140px)] gap-6 animate-fade-in">
-            {/* Sidebar Contacts List (Visible mostly for Admin, or list of Admins for Chef) */}
-            <div className="w-1/3 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
-                <div className="p-4 border-b border-slate-100 bg-slate-50">
-                    <h3 className="font-black text-slate-800 uppercase text-xs tracking-wider">Contacts</h3>
-                </div>
-                <div className="flex-1 overflow-y-auto">
-                    {contacts.length === 0 ? (
-                        <p className="p-4 text-xs text-slate-400 font-bold uppercase">Aucun contact disponible</p>
-                    ) : (
-                        contacts.map(contact => (
-                            <button
-                                key={contact.id}
-                                onClick={() => setSelectedContactId(contact.id)}
-                                className={`w-full p-4 flex items-center gap-3 border-b border-slate-50 transition-colors ${selectedContactId === contact.id ? 'bg-blue-50/50' : 'hover:bg-slate-50'}`}
-                            >
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-xs ${selectedContactId === contact.id ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-slate-200 text-slate-500'}`}>
-                                    {contact.name?.charAt(0) || 'U'}
-                                </div>
-                                <div className="text-left">
-                                    <p className={`text-sm font-bold ${selectedContactId === contact.id ? 'text-blue-900' : 'text-slate-700'}`}>
-                                        {contact.name || contact.email}
-                                    </p>
-                                    <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wide">
-                                        {contact.role}
-                                    </p>
-                                </div>
-                            </button>
-                        ))
-                    )}
-                </div>
+        <div 
+            className="flex h-[calc(100vh-140px)] gap-6 animate-fade-in"
+            style={{ direction: isRTL ? 'rtl' : 'ltr' }}
+        >
+            {/* Sidebar Contacts List */}
+            <div className="w-1/3 min-w-[320px]">
+                <ChatContactList
+                    contacts={contacts}
+                    selectedContactId={selectedContactId}
+                    onSelectContact={setSelectedContactId}
+                    currentUserId={session?.user?.id}
+                    userRole={session?.user?.role}
+                    isAdminContact={true}
+                />
             </div>
 
             {/* Chat Window */}
-            <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden relative">
+            <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
                 {/* Header */}
-                <div className="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        {selectedContactId && contacts.find(c => c.id === selectedContactId) && (
+                <div className="p-5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                    <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        {selectedContact && (
                             <>
-                                <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-xs">
-                                    {contacts.find(c => c.id === selectedContactId)?.name?.charAt(0) || 'C'}
+                                {/* Contact avatar */}
+                                <div className="relative">
+                                    <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-lg shadow-md">
+                                        {selectedContact.name?.charAt(0).toUpperCase() || 'C'}
+                                    </div>
+                                    {/* Online indicator */}
+                                    <div className={`absolute bottom-0 ${isRTL ? 'left-0' : 'right-0'} w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white`} />
                                 </div>
-                                <div>
-                                    <h3 className="font-black text-slate-900 uppercase text-xs tracking-wider">
-                                        {contacts.find(c => c.id === selectedContactId)?.name}
+                                
+                                {/* Contact info */}
+                                <div className={isRTL ? 'text-right' : ''}>
+                                    <h3 className="font-black text-slate-900 text-lg">
+                                        {selectedContact.role === 'ADMIN' ? t('centralAdmin') : selectedContact.name}
                                     </h3>
-                                    <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 uppercase">
-                                        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div> En ligne
+                                    <span className="flex items-center gap-2 text-sm font-bold text-emerald-600">
+                                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                                        {t('online')}
                                     </span>
                                 </div>
                             </>
@@ -203,73 +219,54 @@ export default function MessagesPage() {
                     </div>
                 </div>
 
-                {/* Messages Area */}
+                {/* Messages Area - Clean slate-50 background, no dot pattern */}
                 <div
                     ref={scrollRef}
-                    className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50 scroll-smooth"
-                    style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '20px 20px' }}
+                    className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50 scroll-smooth"
                 >
                     {messages.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-slate-300">
-                            <User className="w-12 h-12 mb-2 opacity-50" />
-                            <p className="font-bold uppercase text-xs tracking-widest">Aucun message</p>
-                            <p className="text-[10px] mt-1">Démarrez la conversation</p>
+                        <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                            <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                                <User className="w-10 h-10 opacity-50" />
+                            </div>
+                            <p className="font-bold uppercase text-lg tracking-wider text-slate-500">
+                                {t('noMessages')}
+                            </p>
+                            <p className="text-base mt-2 text-slate-400">
+                                {t('startConversation')}
+                            </p>
                         </div>
                     ) : (
-                        messages.map((msg, idx) => {
-                            const isMe = msg.senderId === session.user.id;
-                            return (
-                                <div key={msg.id || idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[70%] sm:max-w-[60%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
-                                        <div className={`px-5 py-3 rounded-2xl shadow-sm border ${isMe
-                                                ? 'bg-blue-600 text-white border-blue-500 rounded-br-none'
-                                                : 'bg-white text-slate-800 border-slate-200 rounded-bl-none'
-                                            }`}>
-                                            <p className="text-sm font-medium leading-relaxed">{msg.content}</p>
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-1 px-1">
-                                            <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wide">
-                                                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
-                                            {isMe && (
-                                                <span title={msg.isRead ? "Lu" : "Envoyé"}>
-                                                    {msg.isRead ? (
-                                                        <div className="flex">
-                                                            <CheckCircle2 className="w-3 h-3 text-blue-500" />
-                                                            <CheckCircle2 className="w-3 h-3 text-blue-500 -ml-2" />
-                                                        </div>
-                                                    ) : (
-                                                        <CheckCircle2 className="w-3 h-3 text-slate-300" />
-                                                    )}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })
+                        <div className="space-y-6">
+                            {messages.map((msg, idx) => {
+                                const isMe = msg.senderId === session?.user?.id;
+                                // Show avatar only for first message in a sequence from the same sender
+                                const showAvatar = !isMe && (
+                                    idx === 0 || messages[idx - 1].senderId !== msg.senderId
+                                );
+                                
+                                return (
+                                    <ChatMessageBubble
+                                        key={msg.id || idx}
+                                        message={msg}
+                                        isMe={isMe}
+                                        showAvatar={showAvatar}
+                                        contactName={selectedContact?.name}
+                                        isUnread={unreadMessageIds.has(msg.id)}
+                                    />
+                                );
+                            })}
+                            <div ref={messagesEndRef} />
+                        </div>
                     )}
                 </div>
 
                 {/* Input Area */}
-                <div className="p-4 bg-white border-t border-slate-100">
-                    <form onSubmit={handleSendMessage} className="flex items-center gap-3">
-                        <input
-                            type="text"
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            placeholder="Écrivez votre message..."
-                            className="flex-1 bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 placeholder:font-bold placeholder:uppercase placeholder:text-xs"
-                        />
-                        <button
-                            type="submit"
-                            disabled={!newMessage.trim() || sending}
-                            className="bg-slate-900 text-white p-3 rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-slate-900/10 active:scale-95 transform duration-100"
-                        >
-                            <Send className="w-5 h-5" />
-                        </button>
-                    </form>
-                </div>
+                <ChatInput
+                    onSend={handleSendMessage}
+                    disabled={sending || !selectedContactId}
+                    autoFocus={true}
+                />
             </div>
         </div>
     );

@@ -7,9 +7,10 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+    // Default to French LTR, will be updated dynamically for Arabic (RTL)
     return (
-        <html lang="fr">
-            <body>
+        <html lang="fr" dir="ltr" className="scroll-smooth">
+            <body className="min-h-screen bg-klbeton-gradient antialiased">
                 <Providers>{children}</Providers>
             </body>
         </html>

@@ -3,9 +3,13 @@
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import { Calendar, UserCircle, LogOut, ShieldCheck, User as UserIcon, ChevronDown } from 'lucide-react';
+import { Calendar, UserCircle, LogOut, ShieldCheck, User as UserIcon, ChevronDown, Bell } from 'lucide-react';
+import Link from 'next/link';
 
 import { useDate } from '@/context/DateContext';
+import { useLanguage } from '@/context/LanguageContext';
+import { useNotifications } from '@/context/NotificationContext';
+import LanguageSelector from '@/components/ui/LanguageSelector';
 
 export default function Header() {
     return (
@@ -21,6 +25,8 @@ function HeaderContent() {
     const searchParams = useSearchParams();
     const { data: session } = useSession();
     const { date, setDate } = useDate(); // Global Date
+    const { t, language } = useLanguage(); // Translation
+    const { unreadCount } = useNotifications(); // Notifications
     const role = session?.user?.role;
 
     const isAdmin = role === 'ADMIN';
@@ -28,38 +34,53 @@ function HeaderContent() {
     const displayFullName = session?.user?.name ||
         (session?.user?.prenom && session?.user?.nom ? `${session.user.prenom} ${session.user.nom}` : null) ||
         session?.user?.email?.split('@')[0] ||
-        "Utilisateur";
+        t('admin');
 
     const initials = session?.user?.name?.charAt(0) ||
         session?.user?.prenom?.charAt(0) ||
         session?.user?.nom?.charAt(0) ||
         "U";
 
-    const welcomeLabel = pathname.startsWith('/admin') ? 'ADMIN' :
-        pathname.startsWith('/chef') ? 'CHEF' :
-            (session?.user?.prenom || 'MEMBRE');
+    const welcomeLabel = pathname.startsWith('/admin') ? t('admin') :
+        pathname.startsWith('/chef') ? t('chef') :
+            (session?.user?.prenom || t('admin'));
 
     return (
-        <header className="bg-white/90 backdrop-blur-xl border-b border-slate-100 px-10 py-5 sticky top-0 z-40">
+        <header className="glass-card-enhanced border-b border-white/20 px-10 py-5 sticky top-0 z-40">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
                     <div>
                         <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-none uppercase">
-                            Bienvenue, <span className="text-blue-600">{welcomeLabel}</span>
+                            {t('welcome')}, <span className="text-blue-600">{welcomeLabel}</span>
                         </h2>
                         <div className="flex items-center gap-2 mt-2">
                             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-widest border border-blue-100 shadow-sm shadow-blue-500/5">
                                 <ShieldCheck className="w-3.5 h-3.5" />
                                 <span>
-                                    {role === 'ADMIN' ? 'Accès Administrateur' :
-                                        role === 'CHEF' ? 'Portail Chef' : 'Espace Employé'}
+                                    {role === 'ADMIN' ? t('admin') :
+                                        role === 'CHEF' ? t('chef') : t('employee')}
                                 </span>
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-10">
+                <div className="flex items-center gap-6">
+                    {/* Notification Bell */}
+                    <Link href="/messages" className="relative">
+                        <div className={`p-3 rounded-2xl transition-all duration-300 ${unreadCount > 0 ? 'bg-rose-100 animate-pulse' : 'bg-slate-100 hover:bg-slate-200'}`}>
+                            <Bell className={`w-6 h-6 ${unreadCount > 0 ? 'text-rose-600' : 'text-slate-500'}`} />
+                        </div>
+                        {unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 w-6 h-6 bg-rose-600 text-white text-xs font-black rounded-full flex items-center justify-center shadow-lg border-2 border-white animate-bounce">
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                            </span>
+                        )}
+                    </Link>
+
+                    {/* Language Selector */}
+                    <LanguageSelector />
+
                     {/* Admin Global Date Picker */}
                     {isAdmin && (
                         <div className="flex items-center gap-3 bg-slate-900 p-1.5 rounded-2xl shadow-xl shadow-slate-900/10 border border-slate-800">
@@ -112,7 +133,7 @@ function HeaderContent() {
                                     }}
                                     className="w-full flex items-center gap-3 p-4 text-slate-700 hover:bg-slate-50 rounded-2xl transition-colors text-[10px] font-black uppercase tracking-widest mb-1"
                                 >
-                                    <UserCircle className="w-4 h-4 text-blue-500" /> Mon Profil
+                                    <UserCircle className="w-4 h-4 text-blue-500" /> {t('profile')}
                                 </button>
                                 <button
                                     onClick={() => signOut({
@@ -120,7 +141,7 @@ function HeaderContent() {
                                     })}
                                     className="w-full flex items-center gap-3 p-4 text-rose-600 hover:bg-rose-50 rounded-2xl transition-colors text-[10px] font-black uppercase tracking-widest"
                                 >
-                                    <LogOut className="w-4 h-4" /> Se déconnecter
+                                    <LogOut className="w-4 h-4" /> {t('logout')}
                                 </button>
                             </div>
                         </div>

@@ -18,16 +18,40 @@
   }
 
   body {
-    @apply bg-[#F8FAFC] text-slate-900 antialiased;
+    @apply text-slate-900 antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    font-size: 16px;
-    line-height: 1.5;
+    font-size: 20px;
+    line-height: 1.6;
+    font-weight: 600;
+    background-color: #F8FAFC;
+  }
+
+  /* Global Background with Rose/Blue Gradient Overlay for Login and Dashboard pages */
+  .bg-klbeton-gradient {
+    background-image: 
+      linear-gradient(135deg, rgba(59, 130, 246, 0.4) 0%, rgba(236, 72, 153, 0.3) 100%),
+      url('/bg-klbeton.jpg');
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  /* Glassmorphism effect for cards on gradient background */
+  .glass-card-enhanced {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
   }
 }
 
 @layer components {
   .bento-card {
-    @apply bg-white rounded-[1.5rem] border border-[#E2E8F0] p-6 shadow-sm transition-all duration-300;
+    @apply rounded-3xl p-6 shadow-xl transition-all duration-300;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
   
   .glass-card {
@@ -39,12 +63,15 @@
   }
 
   .card {
-    @apply bg-white rounded-2xl shadow-md border-2 border-slate-200 p-8;
+    @apply rounded-3xl shadow-xl p-8;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
   .btn {
     @apply inline-flex items-center justify-center px-8 py-4 rounded-2xl font-bold transition-all duration-200 disabled:opacity-50;
-    font-size: 16px;
+    font-size: 18px;
   }
 
   .btn-primary {
@@ -52,15 +79,15 @@
   }
 
   .btn-outline {
-    @apply border-3 border-slate-900 text-slate-900 hover:bg-slate-100;
+    @apply border-2 border-slate-300 text-slate-900 hover:bg-slate-100 hover:border-slate-400;
   }
 
   .input {
-    @apply w-full px-6 py-4 bg-white border-3 border-slate-200 rounded-2xl text-lg focus:border-blue-700 outline-none transition-all placeholder:text-slate-400 text-black font-bold;
+    @apply w-full px-6 py-4 bg-white border-2 border-slate-200 rounded-2xl text-xl focus:border-blue-700 outline-none transition-all placeholder:text-slate-400 text-slate-900 font-bold;
   }
 
   .badge {
-    @apply inline-flex items-center px-4 py-2 rounded-xl text-sm font-black uppercase tracking-wider border-2;
+    @apply inline-flex items-center px-4 py-2 rounded-xl text-base font-black uppercase tracking-wider;
   }
 
   .badge-success {

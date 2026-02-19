@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Lock, Loader2, AlertCircle, ShieldCheck } from 'lucide-react';
+import { User, Lock, Loader2, AlertCircle, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginEmployeePage() {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -55,20 +56,23 @@ export default function LoginEmployeePage() {
     };
 
     return (
-        <div className="min-h-screen w-full relative flex items-center justify-center overflow-hidden bg-slate-950">
+        <div className="min-h-screen w-full relative flex items-center justify-center overflow-hidden bg-klbeton-gradient">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="relative z-10 w-full max-w-md px-6"
             >
-                <div className="bg-white rounded-[40px] overflow-hidden shadow-2xl border-[12px] border-slate-900 border-b-[20px]">
+                {/* Glassmorphism Card */}
+                <div className="glass-card-enhanced rounded-[40px] overflow-hidden shadow-2xl">
                     <div className="p-12">
+                        {/* Branding */}
                         <div className="flex flex-col items-center mb-10 text-center">
-                            <div className="w-20 h-20 bg-emerald-500 rounded-3xl flex items-center justify-center mb-6 shadow-xl shadow-emerald-500/20">
+                            <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-blue-600 rounded-3xl flex items-center justify-center mb-6 shadow-2xl shadow-emerald-500/30">
                                 <User className="w-10 h-10 text-white" />
                             </div>
                             <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase leading-none">PORTAIL</h1>
-                            <p className="text-slate-400 text-[10px] font-black mt-3 uppercase tracking-[0.4em]">Espace Employé • KL Beton</p>
+                            <p className="text-slate-600 text-sm font-black mt-3 uppercase tracking-[0.3em]">Espace Employé • KL Beton</p>
+                            <div className="w-12 h-1 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-full mt-4"></div>
                         </div>
 
                         <AnimatePresence>
@@ -76,7 +80,7 @@ export default function LoginEmployeePage() {
                                 <motion.div
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: 'auto' }}
-                                    className="mb-8 bg-rose-50 border-2 border-rose-100 text-rose-600 p-5 rounded-2xl text-xs font-bold flex items-center gap-3"
+                                    className="mb-8 bg-rose-50 border-2 border-rose-200 text-rose-600 p-5 rounded-2xl text-sm font-bold flex items-center gap-3"
                                 >
                                     <AlertCircle className="w-5 h-5" />
                                     {error}
@@ -85,45 +89,59 @@ export default function LoginEmployeePage() {
                         </AnimatePresence>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Email Professionnel</label>
+                            <div className="space-y-3">
+                                <label className="text-sm font-black text-slate-600 uppercase tracking-widest ml-4">Email Professionnel</label>
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full px-8 py-5 bg-slate-50 border-3 border-transparent rounded-2xl font-bold text-slate-900 outline-none focus:bg-white focus:border-emerald-500 transition-all shadow-inner"
+                                    className="w-full px-8 py-5 bg-white border-2 border-slate-200 rounded-2xl font-bold text-slate-900 outline-none focus:border-emerald-500 focus:bg-white transition-all shadow-sm"
                                     placeholder="nom.prenom@klbeton.tn"
                                     required
                                     data-testid="employee-email-input"
                                 />
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Code d'accès</label>
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full px-8 py-5 bg-slate-50 border-3 border-transparent rounded-2xl font-bold text-slate-900 outline-none focus:bg-white focus:border-emerald-500 transition-all shadow-inner"
-                                    placeholder="••••••••"
-                                    required
-                                    data-testid="employee-password-input"
-                                />
+                            <div className="space-y-3">
+                                <label className="text-sm font-black text-slate-600 uppercase tracking-widest ml-4">Code d'accès</label>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full px-8 pr-16 py-5 bg-white border-2 border-slate-200 rounded-2xl font-bold text-slate-900 outline-none focus:border-emerald-500 focus:bg-white transition-all shadow-sm"
+                                        placeholder="••••••••"
+                                        required
+                                        data-testid="employee-password-input"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-2"
+                                        tabIndex={-1}
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="w-6 h-6" />
+                                        ) : (
+                                            <Eye className="w-6 h-6" />
+                                        )}
+                                    </button>
+                                </div>
                             </div>
 
                             <button
                                 type="submit"
                                 disabled={loading}
                                 data-testid="employee-login-submit"
-                                className="w-full py-6 mt-4 bg-slate-900 text-white rounded-[24px] text-lg font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl active:scale-95 disabled:opacity-50"
+                                className="w-full py-6 mt-4 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-[24px] text-lg font-black uppercase tracking-widest hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 disabled:opacity-50"
                             >
                                 {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : "ACCÉDER AU PORTAIL"}
                             </button>
                         </form>
                     </div>
                 </div>
-                <div className="mt-8 flex items-center justify-center gap-3 text-slate-600 font-bold uppercase text-[9px] tracking-[0.2em]">
-                    <ShieldCheck className="w-3.5 h-3.5" />
+                <div className="mt-8 flex items-center justify-center gap-3 text-white/80 font-bold uppercase text-sm tracking-[0.2em]">
+                    <ShieldCheck className="w-5 h-5 text-emerald-400" />
                     Authentification Sécurisée • KL Beton
                 </div>
             </motion.div>
