@@ -20,8 +20,10 @@ import {
     RotateCcw,
     X,
     Wallet,
-    Lock
+    Lock,
+    FileText
 } from 'lucide-react';
+import { generateChefAuditPDF } from '@/lib/services/chefAuditPdfService';
 
 export default function ChefPointagePage() {
     const [pointages, setPointages] = useState([]);
@@ -31,6 +33,8 @@ export default function ChefPointagePage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [sheetEntries, setSheetEntries] = useState({});
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [pdfGenerating, setPdfGenerating] = useState(false);
+    const [validationErrors, setValidationErrors] = useState([]);
     const { data: session } = useSession();
 
     const isLocked = useMemo(() => {
@@ -187,6 +191,95 @@ export default function ChefPointagePage() {
         };
     }, [filteredEmployes, sheetEntries]);
 
+    // Validation logic for audit
+    const validateEntry = (entry, empId) => {
+        const errors = [];
+        const employe = employes.find(e => e.id === empId);
+        
+        if (!entry?.statut) {
+            errors.push({ empId, type: 'error', message: 'Saisie incomplète' });
+        } else {
+            // Alerte 2: ABSENT sans note
+            if (entry.statut === 'ABSENT' && (!entry.notes || entry.notes.trim() === '')) {
+                errors.push({ empId, type: 'error', message: 'Justification obligatoire pour absence' });
+            }
+            // Alerte 3: MALADIE avec Heures Sup > 0
+            if (entry.statut === 'MALADIE' && (entry.heuresSupp > 0)) {
+                errors.push({ empId, type: 'error', message: 'Pas d\'HS en maladie' });
+            }
+            // Alerte 4: CONGE avec Heures Sup > 0
+            if (entry.statut === 'CONGE' && (entry.heuresSupp > 0)) {
+                errors.push({ empId, type: 'error', message: 'Pas d\'HS en congé' });
+            }
+        }
+        
+        return errors;
+    };
+
+    // Check all entries for validation
+    const validateAllEntries = () => {
+        const allErrors = [];
+        employes.forEach(emp => {
+            const entry = sheetEntries[emp.id];
+            const entryErrors = validateEntry(entry, emp.id);
+            allErrors.push(...entryErrors);
+        });
+        setValidationErrors(allErrors);
+        return allErrors;
+    };
+
+    // Generate PDF with validation
+    const handleGeneratePDF = async () => {
+        setPdfGenerating(true);
+        
+        // Run validation
+        const errors = validateAllEntries();
+        
+        // Prepare pointages data for PDF
+        const pointagesForPDF = employes.map(emp => {
+            const entry = sheetEntries[emp.id];
+            const existing = pointages.find(p => p.employeId === emp.id && p.date.startsWith(filterDate));
+            
+            return {
+                employeId: emp.id,
+                statut: entry?.statut || null,
+                heuresSupp: entry?.heuresSupp || 0,
+                heureSupplementaire: entry?.heuresSupp || 0,
+                avance: entry?.avance || 0,
+                note: entry?.notes || '',
+                notes: entry?.notes || '',
+                ...existing
+            };
+        });
+
+        // Generate PDF
+        const result = generateChefAuditPDF(
+            pointagesForPDF,
+            employes,
+            filterDate,
+            session?.user?.prenom + ' ' + session?.user?.nom
+        );
+
+        // If no errors, mark as ready for admin
+        if (!result.hasErrors) {
+            try {
+                await fetch('/api/pointages/validate-chef', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        date: filterDate,
+                        chefId: session?.user?.id,
+                        validatedAt: new Date().toISOString()
+                    })
+                });
+            } catch (error) {
+                console.error('Erreur validation:', error);
+            }
+        }
+
+        setPdfGenerating(false);
+    };
+
     const statutLabels = {
         PRESENT: 'Présent',
         ABSENT: 'Absent',
@@ -212,6 +305,48 @@ export default function ChefPointagePage() {
                 )}
             </AnimatePresence>
 
+            {/* Validation Errors Banner */}
+            <AnimatePresence>
+                {validationErrors.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="bg-rose-50 border-4 border-rose-200 p-6 rounded-[32px] mb-6"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-rose-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                                <AlertCircle className="w-7 h-7" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-black text-rose-900 uppercase">
+                                    {validationErrors.length} erreur(s) détectée(s)
+                                </h3>
+                                <p className="font-bold text-rose-700 uppercase text-sm">
+                                    Corrigez les erreurs avant de générer le PDF
+                                </p>
+                            </div>
+                        </div>
+                        <div className="mt-4 space-y-2 max-h-40 overflow-y-auto">
+                            {validationErrors.slice(0, 5).map((err, idx) => {
+                                const emp = employes.find(e => e.id === err.empId);
+                                return (
+                                    <div key={idx} className="flex items-center gap-2 text-rose-700 text-sm font-bold bg-rose-100 px-4 py-2 rounded-xl">
+                                        <span className="text-rose-500">❌</span>
+                                        {emp?.prenom} {emp?.nom}: {err.message}
+                                    </div>
+                                );
+                            })}
+                            {validationErrors.length > 5 && (
+                                <p className="text-rose-600 text-sm font-bold text-center">
+                                    ... et {validationErrors.length - 5} autres erreurs
+                                </p>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b-2 border-slate-200 pb-8">
                 <div>
                     <h1 className="text-5xl font-black text-slate-900 tracking-tight flex items-center gap-4 uppercase">
@@ -222,6 +357,15 @@ export default function ChefPointagePage() {
                     </p>
                 </div>
                 <div className="flex gap-4">
+                    <button
+                        onClick={handleGeneratePDF}
+                        disabled={pdfGenerating || employes.length === 0}
+                        className="btn btn-secondary px-8 py-5 text-xl shadow-2xl flex items-center gap-3 bg-slate-800 text-white hover:bg-slate-700 disabled:opacity-50"
+                        title="Générer le rapport de contrôle"
+                    >
+                        <FileText className="w-7 h-7" /> 
+                        {pdfGenerating ? 'GÉNÉRATION...' : 'RAPPORT PDF'}
+                    </button>
                     {!isLocked && (
                         <button
                             onClick={handleSaveSheet}
@@ -350,8 +494,10 @@ export default function ChefPointagePage() {
                                     return cfg.inactive;
                                 };
 
+                                const hasErrors = validationErrors.some(err => err.empId === emp.id);
+                                
                                 return (
-                                    <tr key={emp.id} className="hover:bg-slate-50/80 transition-all duration-300 group bg-white">
+                                    <tr key={emp.id} className={`hover:bg-slate-50/80 transition-all duration-300 group ${hasErrors ? 'bg-rose-50 border-l-4 border-rose-500' : 'bg-white'}`}>
                                         {/* SENIOR-FRIENDLY: Larger employee info */}
                                         <td className="px-10 py-8">
                                             <div className="flex items-center gap-5">

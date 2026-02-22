@@ -26,18 +26,21 @@ model User {
 }
 
 model Message {
-  id         String   @id @default(uuid())
-  content    String
-  senderId   String
-  receiverId String
-  isRead     Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  id              String   @id @default(uuid())
+  content         String
+  subject         String?
+  senderId        String
+  receiverId      String
+  isRead          Boolean  @default(false)
+  isSystemMessage Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  sender          User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver        User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
 
   @@index([senderId])
   @@index([receiverId])
   @@index([isRead])
+  @@index([isSystemMessage])
 }
 
 model Employe {
@@ -67,26 +70,31 @@ model Employe {
 }
 
 model Pointage {
-  id              String         @id @default(uuid())
-  employeId       String
-  date            DateTime
-  statut          StatutPointage
-  heuresSupp      Float          @default(0)
-  joursTravailles Float          @default(1)
-  notes           String?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  clockInTime     DateTime?
-  clockOutTime    DateTime?
-  isAutoClockIn   Boolean        @default(false)
-  isAutoClockOut  Boolean        @default(false)
-  totalHours      Float?
-  employe         Employe        @relation(fields: [employeId], references: [id], onDelete: Cascade)
+  id                   String         @id @default(uuid())
+  employeId            String
+  date                 DateTime
+  statut               StatutPointage
+  heuresSupp           Float          @default(0)
+  joursTravailles      Float          @default(1)
+  notes                String?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  clockInTime          DateTime?
+  clockOutTime         DateTime?
+  isAutoClockIn        Boolean        @default(false)
+  isAutoClockOut       Boolean        @default(false)
+  totalHours           Float?
+  // Validation Chef fields
+  valideParChef        Boolean        @default(false)
+  dateValidationChef   DateTime?
+  chefValidateurId     String?
+  employe              Employe        @relation(fields: [employeId], references: [id], onDelete: Cascade)
 
   @@unique([employeId, date])
   @@index([employeId])
   @@index([date])
   @@index([statut])
+  @@index([valideParChef])
 }
 
 model Avance {
