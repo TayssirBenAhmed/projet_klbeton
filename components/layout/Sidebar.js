@@ -20,7 +20,8 @@ import {
     CheckCircle2,
     X,
     AlertCircle,
-    MessageSquare
+    MessageSquare,
+    FileCheck
 } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 import { useLanguage } from '@/context/LanguageContext';
@@ -65,6 +66,7 @@ export default function Sidebar() {
     const chefNavigation = [
         { name: t('dailyEntry'), href: "/chef/pointage", icon: ClipboardList },
         { name: t('history'), href: "/chef/historique", icon: Calendar },
+        { name: t('auditReport'), href: "/chef/rapport-audit", icon: FileCheck },
         { name: t('messages'), href: "/messages", icon: MessageSquare, badge: true },
         { name: t('settings'), href: "/chef/profile", icon: Settings },
     ];
